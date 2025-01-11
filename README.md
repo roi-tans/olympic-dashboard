@@ -1,17 +1,8 @@
-# :earth_americas: GDP dashboard template
+# :earth_americas: Athletes Physical Characteristics Dashboard
 
-A simple Streamlit app showing the GDP of different countries in the world.
-
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://gdp-dashboard-template.streamlit.app/)
+link-https://miniature-space-couscous-4jgv9xr77j4xcjp6-8501.app.github.dev/
 
 ### How to run it on your own machine
-
-1. Install the requirements
-
-   ```
-   $ pip install -r requirements.txt
-   ```
-
 2. Run the app
 
    ```
