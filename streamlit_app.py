@@ -3,13 +3,11 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 from pathlib import Path
-#hey
 # Set the title and favicon that appear in the Browser's tab bar.
 st.set_page_config(
     page_title='Athletes Physical Characteristics Dashboard',
     page_icon=':athletic_shoe:',  # Emoji for a sports theme
 )
-#hey
 # -----------------------------------------------------------------------------
 # Declare some useful functions.
 
