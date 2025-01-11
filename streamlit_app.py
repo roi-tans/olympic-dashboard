@@ -111,3 +111,109 @@ st.header(f'{metric_type} Height and Weight Data', divider='gray')
 
 # Display the filtered data in a table
 st.dataframe(filtered_athletes_df[['NOC_', height_col, weight_col]])
+
+
+####################גרף 2 #####################
+# -----------------------------------------------------------------------------
+# Additional Visualizations and Insights
+
+@st.cache_data
+def load_grouped_data():
+    """Load the grouped data for additional visualizations."""
+    # Adjust the path to your CSV file
+    DATA_FILENAME = Path(__file__).parent / 'data/grouped_data_by_noc_event_sex.csv'
+    grouped_data_df = pd.read_csv(DATA_FILENAME)
+
+    return grouped_data_df
+
+
+# Load the grouped data
+grouped_data_df = load_grouped_data()
+
+# -----------------------------------------------------------------------------
+# Additional Filters
+
+# Add title for this section
+'''
+## :bar_chart: Additional Insights: Height and Weight by Event and Sex
+'''
+
+# Filter NOCs
+available_nocs = grouped_data_df['NOC'].unique()
+chosen_nocs = st.multiselect(
+    'Choose NOCs (Countries):',
+    available_nocs,
+    available_nocs[:3]  # Default to first three NOCs
+)
+
+# Filter Events
+available_events = grouped_data_df['Event'].unique()
+chosen_events = st.multiselect(
+    'Choose Events:',
+    available_events,
+    available_events[:3]  # Default to first three events
+)
+
+# Filter Sex
+available_sexes = grouped_data_df['Sex'].unique()
+chosen_sexes = st.multiselect(
+    'Choose Sex:',
+    available_sexes,
+    available_sexes  # Default to all sexes
+)
+
+# Apply filters to the grouped data
+filtered_grouped_df = grouped_data_df[
+    (grouped_data_df['NOC'].isin(chosen_nocs)) &
+    (grouped_data_df['Event'].isin(chosen_events)) &
+    (grouped_data_df['Sex'].isin(chosen_sexes))
+]
+
+# -----------------------------------------------------------------------------
+# Visualization: Heatmap
+
+st.header('Mean Height and Weight Heatmap', divider='gray')
+
+# Create a pivot table for heatmap visualization
+pivot_table = filtered_grouped_df.pivot_table(
+    values='mean_height',
+    index='Event',
+    columns='NOC',
+    aggfunc='mean'
+)
+
+# Plot the heatmap
+fig, ax = plt.subplots(figsize=(10, 8))
+sns.heatmap(
+    pivot_table,
+    annot=True,
+    fmt=".1f",
+    cmap='coolwarm',
+    cbar_kws={'label': 'Mean Height (cm)'},
+    ax=ax
+)
+
+ax.set_title('Heatmap of Mean Height by Event and NOC')
+ax.set_xlabel('NOC (Country)')
+ax.set_ylabel('Event')
+
+# Display the heatmap in Streamlit
+st.pyplot(fig)
+
+# -----------------------------------------------------------------------------
+# Display Filtered Table
+
+st.header('Filtered Data Table', divider='gray')
+
+# Show the filtered data
+st.dataframe(filtered_grouped_df)
+
+# -----------------------------------------------------------------------------
+# Additional Summary Statistics
+
+st.header('Summary of Filtered Data', divider='gray')
+
+# Display summary statistics for filtered data
+st.write(filtered_grouped_df.describe())
+
+
