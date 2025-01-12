@@ -3,6 +3,10 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 from pathlib import Path
+import zipfile
+import os
+
+
 # Set the title and favicon that appear in the Browser's tab bar.
 st.set_page_config(
     page_title='Athletes Physical Characteristics Dashboard',
@@ -213,5 +217,58 @@ st.header('Summary of Filtered Data', divider='gray')
 
 # Display summary statistics for filtered data
 st.write(filtered_grouped_df.describe())
+
+
+st.title("Olympic Athletes: Physical Attributes and Medal Achievements")
+
+@st.cache_data
+def load_data():
+    zip_file_path = 'data/athlete_events.csv.zip'
+    csv_file_path = 'data/athlete_events.csv'
+    
+    if not os.path.exists(csv_file_path):
+        with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
+            zip_ref.extractall('data/')
+    
+    data = pd.read_csv(csv_file_path)
+    return data
+
+data = load_data()
+
+data = data.dropna(subset=['Height', 'Weight', 'Medal', 'Year'])
+
+sports_list = data['Sport'].unique().tolist()
+selected_sport = st.selectbox("Select a Sport:", sports_list)
+
+sport_data = data[data['Sport'] == selected_sport]
+
+st.write("### Scatter Plot: Height vs. Weight by Medal")
+fig, ax = plt.subplots()
+sns.scatterplot(
+    data=sport_data, 
+    x='Height', 
+    y='Weight', 
+    hue='Medal', 
+    palette='muted', 
+    alpha=0.7, 
+    ax=ax
+)
+plt.xlabel('Height (cm)')
+plt.ylabel('Weight (kg)')
+plt.title(f'{selected_sport}: Height vs. Weight by Medal')
+st.pyplot(fig)
+
+st.write("### Bar Plot: Average Height and Weight by Medal")
+avg_data = sport_data.groupby('Medal')[['Height', 'Weight']].mean().reset_index()
+fig, ax = plt.subplots()
+sns.barplot(data=avg_data.melt(id_vars='Medal'), x='Medal', y='value', hue='variable', palette='muted', ax=ax)
+plt.xlabel('Medal')
+plt.ylabel('Average Value')
+plt.title(f'{selected_sport}: Average Height and Weight by Medal')
+st.pyplot(fig)
+
+
+
+
 
 
