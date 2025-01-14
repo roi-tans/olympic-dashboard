@@ -2,15 +2,36 @@ import streamlit as st
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+import numpy as np
 from pathlib import Path
 import zipfile
 import os
 
-# Set the title and favicon that appear in the Browser's tab bar.
+# Set the page config at the very top of the script
 st.set_page_config(
-    page_title='Athletes Physical Characteristics Dashboard',
-    page_icon=':athletic_shoe:',  # Emoji for a sports theme
+    page_title='Olympic Athletes Physical Characteristics Dashboard',
+    page_icon=':athletic_shoe:',
+    layout='wide',  # This makes the dashboard use the full width
+    initial_sidebar_state='expanded'
 )
+
+# Add custom CSS to maximize space usage
+st.markdown("""
+    <style>
+        .block-container {
+            padding-top: 1rem;
+            padding-bottom: 0rem;
+            padding-left: 5rem;
+            padding-right: 5rem;
+        }
+        .element-container {
+            margin-bottom: 0.5rem;
+        }
+        .stPlotlyChart {
+            margin-bottom: 0rem;
+        }
+    </style>
+""", unsafe_allow_html=True)
 
 # Declare some useful functions.
 
@@ -28,41 +49,11 @@ athletes_df = get_athletes_data()
 # Draw the actual page
 
 # Set the title that appears at the top of the page.
-'''
-# :athletic_shoe: Athletes Physical Characteristics Dashboard
-
-Explore data on the height and weight of athletes from different countries.
-'''
+st.markdown('<h1 style="text-align: center; width: 100%;">Olympic Athletes Physical Characteristics Dashboard</h1>', unsafe_allow_html=True)
 
 # Add some spacing
 ''
 ''
-
-# Filter countries (NOC)
-countries = athletes_df['NOC_'].unique()
-
-selected_countries = st.multiselect(
-    'Which countries would you like to view?',
-    countries,
-    ['AFG', 'AHO', 'ALB', 'ALG', 'AND']
-)
-
-# Filter the data based on selected countries
-filtered_athletes_df = athletes_df[athletes_df['NOC_'].isin(selected_countries)]
-
-# Select metric type (Mean or Median)
-metric_type = st.selectbox(
-    'Which metric would you like to view?',
-    ['Mean', 'Median']
-)
-
-# Set the column names based on selected metric
-if metric_type == 'Mean':
-    height_col = 'height_mean'
-    weight_col = 'weight_mean'
-else:
-    height_col = 'height_median'
-    weight_col = 'weight_median'
 
 # Create a sidebar menu
 selected_section = st.sidebar.selectbox(
@@ -73,16 +64,16 @@ selected_section = st.sidebar.selectbox(
 # Display content based on selected section
 if selected_section == 'Roi':
     # Plotting Height vs Weight by Country
-    st.header(f'{metric_type} Height and Weight by Country', divider='gray')
+    st.header('Height and Weight by Country', divider='gray')
 
     # Plot Height and Weight
     fig, ax = plt.subplots(figsize=(14, 7))
 
     # Bar plot for Height
     sns.barplot(
-        data=filtered_athletes_df,
+        data=athletes_df,
         x='NOC_',
-        y=height_col,
+        y='height_mean',
         color='blue',
         label='Height',
         ax=ax
@@ -90,17 +81,17 @@ if selected_section == 'Roi':
 
     # Bar plot for Weight
     sns.barplot(
-        data=filtered_athletes_df,
+        data=athletes_df,
         x='NOC_',
-        y=weight_col,
+        y='weight_mean',
         color='orange',
         label='Weight',
         ax=ax
     )
 
-    ax.set_title(f'{metric_type} Height and Weight of Athletes by Country')
+    ax.set_title('Height and Weight of Athletes by Country')
     ax.set_xlabel('Country (NOC)')
-    ax.set_ylabel(f'{metric_type} Value')
+    ax.set_ylabel('Value')
     plt.xticks(rotation=90)
 
     # Add a legend
@@ -110,10 +101,10 @@ if selected_section == 'Roi':
     st.pyplot(fig)
 
     # Display a table with the selected data
-    st.header(f'{metric_type} Height and Weight Data', divider='gray')
+    st.header('Height and Weight Data', divider='gray')
 
     # Display the filtered data in a table
-    st.dataframe(filtered_athletes_df[['NOC_', height_col, weight_col]])
+    st.dataframe(athletes_df[['NOC_', 'height_mean', 'weight_mean']])
 
 elif selected_section == 'Idan':
     # Additional Visualizations and Insights
@@ -211,6 +202,11 @@ elif selected_section == 'Amit':
                 zip_ref.extractall('data/')
         
         data = pd.read_csv(csv_file_path)
+
+        # Replace -1 values in Age column with the mean age
+        mean_age = data['Age'].replace(-1, np.nan).mean()
+        data['Age'] = data['Age'].replace(-1, mean_age)
+        
         return data
 
     data = load_data()
@@ -248,6 +244,116 @@ elif selected_section == 'Amit':
     st.pyplot(fig)
 
 elif selected_section == 'Alex':
-    st.title("Alex's Visualization")
-    st.write("Coming soon...")
+    np.random.seed(111)
 
+    col1, col2 = st.columns([3, 1])  # 3:1 ratio for main plot vs controls
+    
+    with col1:
+        st.title("How much does age matter at Olympic Sports?")
+    
+    with col2:
+        # Medal highlight options
+        show_bronze = st.checkbox('Highlight Bronze Medals', value=False)
+        show_silver = st.checkbox('Highlight Silver Medals', value=False)
+        show_gold   = st.checkbox('Highlight Gold Medals', value=False)
+
+    # Load data from CSV
+    athlete_data = pd.read_csv("G:/Python Projects/olympic-dashboard/data/preprocessed_athlete_events.csv")
+
+    # Get all unique sports and sort by average age
+    sports_avg_age = athlete_data.groupby('Sport')['Age'].mean().sort_values()
+    all_sports = sports_avg_age.index.tolist()
+
+    # Define default sports
+    default_sports = ['Basketball', 'Football', 'Speed Skating', 'Athletics', 'Ice Hockey', 
+                     'Swimming']
+
+    # Filter defaults to only those that exist in the data
+    default_sports_in_data = [s for s in default_sports if s in all_sports]
+
+    # Multiselect of sports - place it in a wider container
+    selected_sports = st.multiselect(
+        'Select Sports:',
+        options=all_sports,
+        default=default_sports_in_data
+    )
+
+    if len(selected_sports) > 0:
+        filtered_data = athlete_data[athlete_data['Sport'].isin(selected_sports)].copy()
+
+        # Replace -1 values in Age column with the mean age
+        mean_age = filtered_data['Age'].replace(-1, np.nan).mean()
+        filtered_data['Age'] = filtered_data['Age'].replace(-1, mean_age)
+
+        def decide_display_category(row):
+            medal = row['Medal']
+            if medal == 'Gold' and show_gold:
+                return 'Gold'
+            elif medal == 'Silver' and show_silver:
+                return 'Silver'
+            elif medal == 'Bronze' and show_bronze:
+                return 'Bronze'
+            else:
+                return 'No Medal'
+
+        filtered_data['DisplayMedal'] = filtered_data.apply(decide_display_category, axis=1)
+
+        # Simple color palette with transparent white for non-medals
+        display_palette = {
+            'No Medal': (1, 1, 1, 0.3),  # White with 0.3 opacity
+            'Gold': 'gold',
+            'Silver': 'silver',
+            'Bronze': 'brown'
+        }
+
+        # Create figure with dynamic size based on number of sports
+        fig_width = max(20, len(selected_sports) * 1.5)  # Adjust width based on number of sports
+        fig_height = 10
+        
+        fig, ax = plt.subplots(figsize=(fig_width, fig_height))
+        
+        # Create denser stripplot
+        sns.stripplot(
+            data=filtered_data,
+            x='Sport',
+            y='Age',
+            hue='DisplayMedal',
+            palette=display_palette,
+            size=4,
+            jitter=0.35,
+            alpha=0.6,
+            dodge=False,
+            edgecolor='black',
+            linewidth=0.5,
+            ax=ax
+        )
+
+        # Customize the plot
+        ax.set_title("Age Distribution in Olympic Sports", fontsize=14, pad=20)
+        ax.set_xlabel("Sport", fontsize=12)
+        ax.set_ylabel("Age", fontsize=12)
+        plt.xticks(rotation=45, ha='right')
+        
+        # Customize legend
+        handles = []
+        labels = []
+        if show_gold:
+            handles.append(plt.scatter([], [], color='gold', edgecolor='black', linewidth=0.5))
+            labels.append('Gold Medal')
+        if show_silver:
+            handles.append(plt.scatter([], [], color='silver', edgecolor='black', linewidth=0.5))
+            labels.append('Silver Medal')
+        if show_bronze:
+            handles.append(plt.scatter([], [], color='brown', edgecolor='black', linewidth=0.5))
+            labels.append('Bronze Medal')
+            
+        if handles:
+            ax.legend(handles, labels, title='Medals', bbox_to_anchor=(1.05, 1), loc='upper left')
+        
+        # Adjust layout to prevent label cutoff
+        plt.tight_layout()
+        
+        # Use the full width of the page for the plot
+        st.pyplot(fig, use_container_width=True)
+    else:
+        st.write("Please select at least one sport to display the visualization.")
