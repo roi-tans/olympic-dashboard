@@ -199,79 +199,55 @@ elif selected_section == 'Idan':
     st.pyplot(fig)
 
 elif selected_section == 'Amit':
-    st.title('🏅 Olympic Success & National Sports Budgets')
-    st.write("Exploring the relationship between national sports budgets and Olympic performance")
+    st.title("Olympic Athletes: Physical Attributes and Medal Achievements")
 
-    try:
-        # Load the data
-        budget_df = pd.read_csv('data/Correlation Sports Budget to Olympic Medals.csv', sep=';')
+    @st.cache_data
+    def load_data():
+        zip_file_path = 'data/athlete_events.csv.zip'
+        csv_file_path = 'data/athlete_events.csv'
         
-        # Clean the budget data - simplified cleaning
-        budget_df['Budget_Clean'] = (budget_df['Total 2017-2019 (MM U$D)']
-            .str.replace('$', '')
-            .str.replace(' ', '')
-            .str.replace('.', '')
-            .str.replace(',', '.')
-            .astype(float))
+        if not os.path.exists(csv_file_path):
+            with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
+                zip_ref.extractall('data/')
         
-        budget_df['Total Medals'] = pd.to_numeric(budget_df['Total Medals'])
+        data = pd.read_csv(csv_file_path)
+        return data
 
-        # Display key metrics
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            st.metric("Average Budget (MM USD)", f"${budget_df['Budget_Clean'].mean():,.2f}")
-        with col2:
-            st.metric("Average Medals", f"{budget_df['Total Medals'].mean():.1f}")
-        with col3:
-            correlation = budget_df['Budget_Clean'].corr(budget_df['Total Medals'])
-            st.metric("Budget-Medals Correlation", f"{correlation:.2f}")
+    data = load_data()
 
-        # Create main scatter plot
-        fig1, ax1 = plt.subplots(figsize=(10, 6))
-        sns.scatterplot(data=budget_df, x='Budget_Clean', y='Total Medals', ax=ax1)
-        
-        # Add labels and title
-        ax1.set_xlabel('Sports Budget (Million USD)')
-        ax1.set_ylabel('Olympic Medals')
-        ax1.set_title('National Sports Budget vs Olympic Medals')
-        
-        # Add country labels
-        for _, row in budget_df.iterrows():
-            ax1.annotate(row['Country'], (row['Budget_Clean'], row['Total Medals']))
-        
-        st.pyplot(fig1)
-        plt.close()
+    data = data.dropna(subset=['Height', 'Weight', 'Medal', 'Year'])
 
-        # Calculate and display efficiency
-        st.subheader("Budget Efficiency Analysis", divider='gray')
-        budget_df['Medals per Billion'] = (budget_df['Total Medals'] / budget_df['Budget_Clean']) * 1000
-        
-        # Create efficiency bar plot
-        fig2, ax2 = plt.subplots(figsize=(12, 6))
-        efficiency_data = budget_df.nlargest(10, 'Medals per Billion')
-        sns.barplot(data=efficiency_data, x='Country', y='Medals per Billion', ax=ax2)
-        plt.xticks(rotation=45)
-        ax2.set_title('Top 10 Countries: Olympic Medals per Billion USD')
-        
-        st.pyplot(fig2)
-        plt.close()
+    sports_list = data['Sport'].unique().tolist()
+    selected_sport = st.selectbox("Select a Sport:", sports_list)
 
-        # Display data table
-        st.subheader("Detailed Data", divider='gray')
-        st.dataframe(
-            budget_df[['Country', 'Budget_Clean', 'Total Medals', 'Medals per Billion']]
-            .sort_values('Medals per Billion', ascending=False)
-            .style.format({
-                'Budget_Clean': '${:,.2f}M',
-                'Medals per Billion': '{:.1f}',
-                'Total Medals': '{:.0f}'
-            })
-        )
+    sport_data = data[data['Sport'] == selected_sport]
 
-    except Exception as e:
-        st.error(f"Error loading or processing data: {str(e)}")
-        st.write("Please check if the data file is in the correct location and format.")
+    st.write("### Scatter Plot: Height vs. Weight by Medal")
+    fig, ax = plt.subplots()
+    sns.scatterplot(
+        data=sport_data, 
+        x='Height', 
+        y='Weight', 
+        hue='Medal', 
+        palette='muted', 
+        alpha=0.7, 
+        ax=ax
+    )
+    plt.xlabel('Height (cm)')
+    plt.ylabel('Weight (kg)')
+    plt.title(f'{selected_sport}: Height vs. Weight by Medal')
+    st.pyplot(fig)
+
+    st.write("### Bar Plot: Average Height and Weight by Medal")
+    avg_data = sport_data.groupby('Medal')[['Height', 'Weight']].mean().reset_index()
+    fig, ax = plt.subplots()
+    sns.barplot(data=avg_data.melt(id_vars='Medal'), x='Medal', y='value', hue='variable', palette='muted', ax=ax)
+    plt.xlabel('Medal')
+    plt.ylabel('Average Value')
+    plt.title(f'{selected_sport}: Average Height and Weight by Medal')
+    st.pyplot(fig)
 
 elif selected_section == 'Alex':
     st.title("Alex's Visualization")
     st.write("Coming soon...")
+
