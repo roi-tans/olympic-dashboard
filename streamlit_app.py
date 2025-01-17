@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 import zipfile
 import os
+import numpy as np
 
 # Set the title and favicon that appear in the Browser's tab bar.
 st.set_page_config(
@@ -14,56 +15,6 @@ st.set_page_config(
 
 # Declare some useful functions.
 
-@st.cache_data
-def get_athletes_data():
-    """Grab athletes' data from a CSV file."""
-    # Adjust this path as per where your file is located
-    DATA_FILENAME = Path(__file__).parent/'data/country_grouped.csv'
-    raw_athletes_df = pd.read_csv(DATA_FILENAME)
-
-    return raw_athletes_df
-
-athletes_df = get_athletes_data()
-
-# Draw the actual page
-
-# Set the title that appears at the top of the page.
-'''
-# :athletic_shoe: Athletes Physical Characteristics Dashboard
-
-Explore data on the height and weight of athletes from different countries.
-'''
-
-# Add some spacing
-''
-''
-
-# Filter countries (NOC)
-countries = athletes_df['NOC_'].unique()
-
-selected_countries = st.multiselect(
-    'Which countries would you like to view?',
-    countries,
-    ['AFG', 'AHO', 'ALB', 'ALG', 'AND']
-)
-
-# Filter the data based on selected countries
-filtered_athletes_df = athletes_df[athletes_df['NOC_'].isin(selected_countries)]
-
-# Select metric type (Mean or Median)
-metric_type = st.selectbox(
-    'Which metric would you like to view?',
-    ['Mean', 'Median']
-)
-
-# Set the column names based on selected metric
-if metric_type == 'Mean':
-    height_col = 'height_mean'
-    weight_col = 'weight_mean'
-else:
-    height_col = 'height_median'
-    weight_col = 'weight_median'
-
 # Create a sidebar menu
 selected_section = st.sidebar.selectbox(
     'Select Visualization Section',
@@ -72,132 +23,294 @@ selected_section = st.sidebar.selectbox(
 
 # Display content based on selected section
 if selected_section == 'Roi':
+    @st.cache_data
+    def get_athletes_data():
+        """Grab athletes' data from a CSV file."""
+        # Adjust this path as per where your file is located
+        DATA_FILENAME = Path(__file__).parent/'data/country_grouped3.csv'
+        raw_athletes_df = pd.read_csv(DATA_FILENAME)
+
+        return raw_athletes_df
+
+    athletes_df = get_athletes_data()
+
+    # Draw the actual page
+
+    # Set the title that appears at the top of the page.
+    '''
+    # :athletic_shoe: Athletes Physical Characteristics Dashboard
+
+    Explore data on the height and weight of athletes from different countries.
+    '''
+
+    # Add some spacing
+    ''
+    ''
+
+    # Filter countries (NOC)
+    countries = athletes_df['region'].unique()
+
+    selected_countries = st.multiselect(
+        'Which countries would you like to view?',
+        countries,
+        ['Afghanistan','Argentina','Georgia','Japan','Israel','USA']
+    )
+
+    # Filter the data based on selected countries
+    filtered_athletes_df = athletes_df[athletes_df['region'].isin(selected_countries)]
+
+    # Select metric type (Mean or Median)
+    metric_type = st.selectbox(
+        'Which metric would you like to view?',
+        ['Mean', 'Median']
+    )
+
+    # Set the column names based on selected metric
+    if metric_type == 'Mean':
+        height_col = 'height_mean'
+        weight_col = 'weight_mean'
+    else:
+        height_col = 'height_median'
+        weight_col = 'weight_median'
+
     # Plotting Height vs Weight by Country
     st.header(f'{metric_type} Height and Weight by Country', divider='gray')
+    
 
-    # Plot Height and Weight
+    # Create figure
     fig, ax = plt.subplots(figsize=(14, 7))
+    
 
-    # Bar plot for Height
-    sns.barplot(
-        data=filtered_athletes_df,
-        x='NOC_',
-        y=height_col,
-        color='blue',
-        label='Height',
-        ax=ax
-    )
+    # Calculate bar positions
+    x = np.arange(len(filtered_athletes_df['region'].unique()))
+    width = 0.35
 
-    # Bar plot for Weight
-    sns.barplot(
-        data=filtered_athletes_df,
-        x='NOC_',
-        y=weight_col,
-        color='orange',
-        label='Weight',
-        ax=ax
-    )
+    # Create bars
+    height_bars = ax.bar(x - width/2, 
+                        filtered_athletes_df[height_col], 
+                        width, 
+                        label='Height',
+                        color='#4A90E2',  # Nice blue color
+                        alpha=0.8)
 
+    weight_bars = ax.bar(x + width/2, 
+                        filtered_athletes_df[weight_col], 
+                        width, 
+                        label='Weight',
+                        color='#F39C12',  # Nice gold color
+                        alpha=0.8)
+
+    # Customize the plot
     ax.set_title(f'{metric_type} Height and Weight of Athletes by Country')
-    ax.set_xlabel('Country (NOC)')
+    ax.set_xlabel('Country (region)')
     ax.set_ylabel(f'{metric_type} Value')
-    plt.xticks(rotation=90)
 
-    # Add a legend
+    # Set x-axis ticks
+    ax.set_xticks(x)
+    ax.set_xticklabels(filtered_athletes_df['region'], rotation=45, ha='right')
+
+    # Add value labels on the bars
+    def add_value_labels(bars):
+        for bar in bars:
+            height = bar.get_height()
+            ax.text(bar.get_x() + bar.get_width()/2., height,
+                    f'{height:.1f}',
+                    ha='center', va='bottom')
+
+    add_value_labels(height_bars)
+    add_value_labels(weight_bars)
+
+    # Add legend
     ax.legend()
+
+    # Adjust layout
+    plt.tight_layout()
 
     # Show the plot in Streamlit
     st.pyplot(fig)
 
-    # Display a table with the selected data
-    st.header(f'{metric_type} Height and Weight Data', divider='gray')
-
     # Display the filtered data in a table
-    st.dataframe(filtered_athletes_df[['NOC_', height_col, weight_col]])
-
-elif selected_section == 'Idan':
-    # Additional Visualizations and Insights
-
-    @st.cache_data
-    def load_grouped_data():
+    st.header(f'{metric_type} Height and Weight Data', divider='gray')
+    st.dataframe(filtered_athletes_df[['region', height_col, weight_col]])
+    def load_grouped_data2():
         """Load the grouped data for additional visualizations."""
         # Adjust the path to your CSV file
-        DATA_FILENAME = Path(__file__).parent / 'data/grouped_data_by_noc_event_sex.csv'
+        DATA_FILENAME = Path(__file__).parent / 'data/grouped_data_by_noc_event_sex3.csv'
         grouped_data_df = pd.read_csv(DATA_FILENAME)
-
+        
+        # Clean data by removing invalid heights and weights
+        grouped_data_df = grouped_data_df[
+            (grouped_data_df['mean_height'] > 0) & 
+            (grouped_data_df['mean_weight'] > 0)
+        ]
+        
         return grouped_data_df
 
     # Load the grouped data
-    grouped_data_df = load_grouped_data()
-
-    # Additional Filters
+    grouped_data_df = load_grouped_data2()
 
     # Add title for this section
-    '''
-    ## :bar_chart: Additional Insights: Height and Weight by Event and Sex
-    '''
+    st.markdown('''
+    ## :bar_chart: Olympic Athletes Analysis: Height and Weight by Event and Sex
+    ''')
 
-    # Filter NOCs
-    available_nocs = grouped_data_df['NOC'].unique()
-    chosen_nocs = st.multiselect(
-        'Choose NOCs (Countries):',
-        available_nocs,
-        available_nocs[:3]  # Default to first three NOCs
-    )
-
-    # Filter Events
+    # First, filter by Event
     available_events = grouped_data_df['Event'].unique()
     chosen_events = st.multiselect(
         'Choose Events:',
         available_events,
-        available_events[:3]  # Default to first three events
+        available_events[:3],  # Default to first three events
+        key='event_selector'
     )
 
-    # Filter Sex
-    available_sexes = grouped_data_df['Sex'].unique()
-    chosen_sexes = st.multiselect(
-        'Choose Sex:',
-        available_sexes,
-        available_sexes  # Default to all sexes
+    # Filter data by selected events
+    events_filtered_df = grouped_data_df[grouped_data_df['Event'].isin(chosen_events)]
+
+    # Then, get available countries for those events
+    available_nocs = events_filtered_df['region'].unique()
+    chosen_nocs = st.multiselect(
+        'Choose Countries (filtered by selected events):',
+        available_nocs,
+        available_nocs[:3] if len(available_nocs) >= 3 else available_nocs,  # Default to first three NOCs or all if less
+        key='noc_selector'
     )
 
-    # Apply filters to the grouped data
-    filtered_grouped_df = grouped_data_df[
-        (grouped_data_df['NOC'].isin(chosen_nocs)) &
-        (grouped_data_df['Event'].isin(chosen_events)) &
-        (grouped_data_df['Sex'].isin(chosen_sexes))
-    ]
+    # Apply final filters to the grouped data
+    filtered_grouped_df = events_filtered_df[events_filtered_df['region'].isin(chosen_nocs)]
 
-    # Visualization: Heatmap
+    # Create tabs for different visualizations
+    tab1, tab2, tab3 = st.tabs(["Height vs Weight Analysis", "Event Comparisons", "Country Analysis"])
 
-    st.header('Mean Height and Weight Heatmap', divider='gray')
+    with tab1:
 
-    # Create a pivot table for heatmap visualization
-    pivot_table = filtered_grouped_df.pivot_table(
-        values='mean_height',
-        index='Event',
-        columns='NOC',
-        aggfunc='mean'
-    )
+        st.header('Analysis')
 
-    # Plot the heatmap
-    fig, ax = plt.subplots(figsize=(10, 8))
-    sns.heatmap(
-        pivot_table,
-        annot=True,
-        fmt=".1f",
-        cmap='coolwarm',
-        cbar_kws={'label': 'Mean Height (cm)'},
-        ax=ax
-    )
+        # Simple scatter plot with regression line
+        fig, ax = plt.subplots(figsize=(10, 6))
+        sns.scatterplot(data=filtered_grouped_df, 
+                        x='mean_height', 
+                        y='mean_weight',
+                        s=100)
+        sns.regplot(data=filtered_grouped_df, 
+                    x='mean_height', 
+                    y='mean_weight',
+                    scatter=False,
+                    color='red')
+        st.pyplot(fig)
 
-    ax.set_title('Heatmap of Mean Height by Event and NOC')
-    ax.set_xlabel('NOC (Country)')
-    ax.set_ylabel('Event')
+    with tab2:
+        st.header('Event Analysis', divider='gray')
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            # Height by Event Box Plot
+            fig_height, ax_height = plt.subplots(figsize=(10, len(chosen_events)*0.4 + 6))
+            sns.boxplot(
+                data=filtered_grouped_df,
+                y='Event',
+                x='mean_height',
+                orient='h',
+                ax=ax_height
+            )
+            ax_height.set_title('Height Distribution by Event')
+            ax_height.set_xlabel('Height (cm)')
+            st.pyplot(fig_height)
+        
+        with col2:
+            # Weight by Event Box Plot
+            fig_weight, ax_weight = plt.subplots(figsize=(10, len(chosen_events)*0.4 + 6))
+            sns.boxplot(
+                data=filtered_grouped_df,
+                y='Event',
+                x='mean_weight',
+                orient='h',
+                ax=ax_weight
+            )
+            ax_weight.set_title('Weight Distribution by Event')
+            ax_weight.set_xlabel('Weight (kg)')
+            st.pyplot(fig_weight)
 
-    # Display the heatmap in Streamlit
-    st.pyplot(fig)
+    with tab3:
+        st.header('Country Comparison', divider='gray')
+        
+        # Calculate average BMI for each country
+        filtered_grouped_df['BMI'] = filtered_grouped_df['mean_weight'] / (filtered_grouped_df['mean_height']/100)**2
+        
+        country_stats = filtered_grouped_df.groupby('region').agg({
+            'mean_height': 'mean',
+            'mean_weight': 'mean',
+            'BMI': 'mean'
+        }).round(2)
+        
+        # Create bar chart comparing countries
+        fig_countries, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(15, 6))
+        
+        # Height comparison
+        sns.barplot(data=filtered_grouped_df, x='region', y='mean_height', ci=None, ax=ax1)
+        ax1.set_title('Average Height by Country')
+        ax1.set_ylabel('Height (cm)')
+        ax1.tick_params(axis='x', rotation=45)
+        
+        # Weight comparison
+        sns.barplot(data=filtered_grouped_df, x='region', y='mean_weight', ci=None, ax=ax2)
+        ax2.set_title('Average Weight by Country')
+        ax2.set_ylabel('Weight (kg)')
+        ax2.tick_params(axis='x', rotation=45)
+        
+        # BMI comparison
+        sns.barplot(data=filtered_grouped_df, x='region', y='BMI', ci=None, ax=ax3)
+        ax3.set_title('Average BMI by Country')
+        ax3.set_ylabel('BMI')
+        ax3.tick_params(axis='x', rotation=45)
+        
+        plt.tight_layout()
+        st.pyplot(fig_countries)
+        
+        # Display detailed statistics
+        st.subheader('Detailed Country Statistics')
+        st.dataframe(country_stats.style.format({
+            'mean_height': '{:.1f} cm',
+            'mean_weight': '{:.1f} kg',
+            'BMI': '{:.1f}'
+        }))
 
+    # Add key insights section
+    st.header('Key Insights', divider='gray')
+
+    # Calculate some interesting statistics
+    stats_cols = st.columns(3)
+
+    with stats_cols[0]:
+        st.metric(
+            label="Average Height",
+            value=f"{filtered_grouped_df['mean_height'].mean():.1f} cm",
+            delta=f"{filtered_grouped_df['mean_height'].std():.1f} cm std"
+        )
+
+    with stats_cols[1]:
+        st.metric(
+            label="Average Weight",
+            value=f"{filtered_grouped_df['mean_weight'].mean():.1f} kg",
+            delta=f"{filtered_grouped_df['mean_weight'].std():.1f} kg std"
+        )
+
+    with stats_cols[2]:
+        avg_bmi = filtered_grouped_df['BMI'].mean()
+        st.metric(
+            label="Average BMI",
+            value=f"{avg_bmi:.1f}",
+            delta=f"{filtered_grouped_df['BMI'].std():.1f} std"
+        )
+
+
+#######################################
+
+elif selected_section == 'Idan':
+    # Additional Visualizations and Insights
+    st.title('🏅 coming soon')
+
+  
 elif selected_section == 'Amit':
     st.title('🏅 Olympic Success & National Sports Budgets')
     st.write("Exploring the relationship between national sports budgets and Olympic performance")
