@@ -53,11 +53,54 @@ st.markdown("""
 # Create a sidebar menu
 selected_section = st.sidebar.selectbox(
     'Select Visualization Section',
-    ['Roi', 'Idan', 'Amit', 'Alex']
+    ['Opening', 'Roi', 'Idan', 'Amit', 'Alex']
 )
 
-# Display content based on selected section
-if selected_section == 'Roi':
+if selected_section == 'Opening':
+    # Display header with an Olympic-themed emoji
+    st.title('🏅 Olympic Athletes Analysis Dashboard ⛹🏽')
+
+    # Load the data
+    @st.cache_data
+    def load_opening_data():
+        """Load the athlete events data for the opening page."""
+        zip_file_path = 'data/athlete_events.csv.zip'
+        csv_file_path = 'data/athlete_events.csv'
+        
+        # Extract if needed
+        if not os.path.exists(csv_file_path):
+            with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
+                zip_ref.extractall('data/')
+        
+        # Read the data
+        return pd.read_csv(csv_file_path)
+
+    # Load and display first 5 rows of the data
+    data = load_opening_data()
+    st.subheader('Preview of Our Dataset', divider='gray')
+    st.dataframe(data.head())
+
+    # Display research questions
+    st.subheader('Our Research Questions', divider='gray')
+    st.markdown("""
+    1. **Physical Characteristics Analysis**: How do athletes' physical characteristics (height and weight) vary across different countries and sports?
+
+    2. **Medal Performance**: What is the relationship between athletes' physical attributes and their medal achievements in different sports?
+
+    3. **Budget Impact**: Is there a correlation between national sports budgets and Olympic medal counts?
+
+    4. **Age Distribution**: How does age distribution vary across different Olympic sports, and what role does it play in medal achievements?
+
+    These questions guide our analysis across the different sections of this dashboard, each focusing on specific aspects of Olympic athletics and performance.
+
+    **Navigate using the sidebar to explore each analysis section:**
+    - **Roi's Analysis**: Focuses on athletes' physical characteristics by country
+    - **Idan's Analysis**: Explores the relationship between physical attributes and medals
+    - **Amit's Analysis**: Investigates national sports budgets and Olympic success
+    - **Alex's Analysis**: Examines age distributions across Olympic sports
+    """)
+
+elif selected_section == 'Roi':
     @st.cache_data
     def get_athletes_data():
         """Grab athletes' data from a CSV file."""
