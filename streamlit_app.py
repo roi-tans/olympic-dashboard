@@ -57,40 +57,87 @@ selected_section = st.sidebar.selectbox(
 )
 
 if selected_section == 'Opening':
-    # Display header with an Olympic-themed emoji
-    st.title('🏅 Olympic Athletes Analysis Dashboard ⛹🏽')
+    # Title
+    st.title('🏅 Olympic Athletes Analysis Dashboard 🌟')
+    
+    try:
+        # Load the data
+        @st.cache_data
+        def load_opening_data():
+            """Load the athlete events data for the opening page."""
+            zip_file_path = 'data/athlete_events.csv.zip'
+            csv_file_path = 'data/athlete_events.csv'
+            
+            # Extract if needed
+            if not os.path.exists(csv_file_path):
+                with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
+                    zip_ref.extractall('data/')
+            
+            # Read the data
+            return pd.read_csv(csv_file_path)
 
-    # Load the data
-    @st.cache_data
-    def load_opening_data():
-        """Load the athlete events data for the opening page."""
-        zip_file_path = 'data/athlete_events.csv.zip'
-        csv_file_path = 'data/athlete_events.csv'
+        # Load data and calculate metrics
+        data = load_opening_data()
         
-        # Extract if needed
-        if not os.path.exists(csv_file_path):
-            with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
-                zip_ref.extractall('data/')
+        # Display key metrics
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric(
+                "Total Athletes",
+                f"{data['ID'].nunique():,}"
+            )
+        with col2:
+            st.metric(
+                "Total Sports",
+                f"{data['Sport'].nunique():,}"
+            )
+        with col3:
+            st.metric(
+                "Total Countries",
+                f"{data['NOC'].nunique():,}"
+            )
+
+        # Dataset Preview section
+        st.markdown("""
+        <div style='background-color: #f0f2f6; padding: 20px; border-radius: 10px; margin: 20px 0;'>
+            <h2 style='color: #1f1f1f; margin-bottom: 15px;'>📊 Dataset Preview</h2>
+            <p style='font-size: 18px; color: #1f1f1f; line-height: 1.6;'>
+                Our analysis is based on comprehensive Olympic data, including athlete characteristics, 
+                performance metrics, and national statistics.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
         
-        # Read the data
-        return pd.read_csv(csv_file_path)
+        st.dataframe(data.head(), height=300)
 
-    # Load and display first 5 rows of the data
-    data = load_opening_data()
-    st.subheader('Preview of Our Dataset', divider='gray')
-    st.dataframe(data.head())
+        # Research Questions section
+        st.markdown("""
+        <div style='background-color: #f0f2f6; padding: 20px; border-radius: 10px; margin: 20px 0;'>
+            <h2 style='color: #1f1f1f; margin-bottom: 15px;'>Our Research Questions 🔍</h2>
+            <div style='font-size: 18px; color: #1f1f1f; line-height: 1.6;'>
+                <p style='margin-bottom: 15px;'>
+                    <strong>1. Physical Characteristics Analysis 📏</strong><br>
+                    How do athletes' physical characteristics (height and weight) vary across different countries and sports?
+                </p>
+                <p style='margin-bottom: 15px;'>
+                    <strong>2. Medal Performance 🏅</strong><br>
+                    What is the relationship between athletes' physical attributes and their medal achievements in different sports?
+                </p>
+                <p style='margin-bottom: 15px;'>
+                    <strong>3. Budget Impact 💰</strong><br>
+                    Is there a correlation between national sports budgets and Olympic medal counts?
+                </p>
+                <p style='margin-bottom: 15px;'>
+                    <strong>4. Age Distribution 📊</strong><br>
+                    How does age distribution vary across different Olympic sports, and what role does it play in medal achievements?
+                </p>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
-    # Display research questions
-    st.subheader('Our Research Questions', divider='gray')
-    st.markdown("""
-    1. **Physical Characteristics Analysis**: How do athletes' physical characteristics (height and weight) vary across different countries and sports?
-
-    2. **Medal Performance**: What is the relationship between athletes' physical attributes and their medal achievements in different sports?
-
-    3. **Budget Impact**: Is there a correlation between national sports budgets and Olympic medal counts?
-
-    4. **Age Distribution**: How does age distribution vary across different Olympic sports, and what role does it play in medal achievements?
-    """)
+    except Exception as e:
+        st.error(f"Error loading or processing data: {str(e)}")
+        st.write("Please check if the data file is in the correct location and format.")
 
 elif selected_section == 'Roi':
     @st.cache_data
@@ -368,101 +415,185 @@ elif selected_section == 'Roi':
 #######################################
 
 elif selected_section == 'Idan':
-    # כותרת האפליקציה
-    st.title("Is there a correlation between height or weight and winning medals, and if so, in which sports? 🏅")
-    st.markdown("""The scatter plot shows each athlete’s height and weight, with dots colored by medal. This allows
-    us to see how individual physiques are distributed, spot trends, and identify any outliers. The bar plot compares
-    the average height and weight across the three medal categories, making it clear at a glance if one group tends to
-    be taller or heavier than the others.
-    """)   
+    # Title and Introduction
+    st.title("Is there a correlation between height or weight and winning medals, and if so, in which sports? 📏")
     
-    # טעינת הנתונים מתוך קובץ zip
+    # Enhanced introduction with larger text and better formatting
+    st.markdown("""
+    <div style='background-color: #f0f2f6; padding: 20px; border-radius: 10px; margin: 20px 0;'>
+        <h2 style='color: #1f1f1f; margin-bottom: 15px;'>Understanding the Visualizations 📊</h2>
+        <p style='font-size: 20px; color: #1f1f1f; line-height: 1.6;'>
+            <strong>The Scatter Plot</strong> displays each athlete's height and weight, with points colored by medal type. 
+            This visualization helps us identify patterns in physical characteristics among medal winners.
+        </p>
+        <p style='font-size: 20px; color: #1f1f1f; line-height: 1.6;'>
+            <strong>The Bar Plot</strong> shows the average height and weight for each medal category, 
+            making it easy to compare physical attributes across different levels of achievement.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Data Loading
     @st.cache_data
     def load_data():
         zip_file_path = 'data/athlete_events.csv.zip'
         csv_file_path = 'data/athlete_events.csv'
         
-        # חילוץ הקובץ אם הוא לא חולץ עדיין
+        # Extract file if needed
         if not os.path.exists(csv_file_path):
             with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
                 zip_ref.extractall('data/')
         
-        # קריאת הקובץ
+        # Read the file
         data = pd.read_csv(csv_file_path)
         return data
     
     data1 = load_data()
-
+    
+    # Data cleaning
     data = data1[
-    (data1['Height'] != -1) &
-    (data1['Weight'] != -1)
-]
-
-    # ניקוי בסיסי של הנתונים
+        (data1['Height'] != -1) &
+        (data1['Weight'] != -1)
+    ]
     data = data.dropna(subset=['Height', 'Weight', 'Medal', 'Year'])
     
-    # בחירת ענף ספורט מתוך רשימת האפשרויות
+    # Sport selection with larger font
     sports_list = data['Sport'].unique().tolist()
-    selected_sport = st.selectbox("Select a Sport:", sports_list)
-    
-    # סינון לפי ענף הספורט הנבחר
+    st.markdown("### 🎯 Select a Sport to Analyze:")
+    selected_sport = st.selectbox("", sports_list)  # Empty string to avoid double label
     sport_data = data[data['Sport'] == selected_sport]
     
-    # יצירת גרף פיזור לפי ענף ספורט ומדליה
-    st.write("### Scatter Plot: Height vs. Weight by Medal")
-    fig, ax = plt.subplots()
-    sns.scatterplot(
-        data=sport_data, 
-        x='Height', 
-        y='Weight', 
-        hue='Medal', 
-        palette='muted', 
-        alpha=0.7, 
-        ax=ax
+    # Scatter Plot
+    st.markdown("## 📈 Scatter Plot: Height vs. Weight by Medal")
+    fig, ax = plt.subplots(figsize=(12, 8))
+    
+    # Define medal colors
+    medal_colors = {
+        'Gold': '#FFD700',    # Bright gold
+        'Silver': '#C0C0C0',  # Brighter silver
+        'Bronze': '#CD7F32'   # Warm bronze
+    }
+    
+    # Create scatter plot
+    for medal in ['Bronze', 'Silver', 'Gold']:  # Plot in this order to have gold on top
+        mask = sport_data['Medal'] == medal
+        ax.scatter(
+            sport_data[mask]['Height'],
+            sport_data[mask]['Weight'],
+            c=medal_colors[medal],
+            label=medal,
+            alpha=0.7,
+            s=100,  # Larger point size
+            edgecolor='white',  # White edge for better contrast
+            linewidth=0.5
+        )
+    
+    # Enhance scatter plot styling
+    ax.set_xlabel('Height (cm)', fontsize=14, fontweight='bold')
+    ax.set_ylabel('Weight (kg)', fontsize=14, fontweight='bold')
+    ax.set_title(f'{selected_sport}: Height vs. Weight by Medal', fontsize=16, pad=20)
+    ax.grid(True, linestyle='--', alpha=0.3)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    
+    # Enhanced legend
+    ax.legend(
+        title='Medal Type',
+        title_fontsize=14,
+        fontsize=12,
+        bbox_to_anchor=(1.05, 1),
+        loc='upper left'
     )
-    plt.xlabel('Height (cm)')
-    plt.ylabel('Weight (kg)')
-    plt.title(f'{selected_sport}: Height vs. Weight by Medal')
+    
+    plt.tight_layout()
     st.pyplot(fig)
     
-    # גרף עמודות ממוצע גובה ומשקל לפי מדליה
-    st.write("### Bar Plot: Average Height and Weight by Medal")
+    # Bar Plot
+    st.markdown("## 📊 Bar Plot: Average Height and Weight by Medal")
     avg_data = sport_data.groupby('Medal')[['Height', 'Weight']].mean().reset_index()
-    fig, ax = plt.subplots()
-    sns.barplot(data=avg_data.melt(id_vars='Medal'), x='Medal', y='value', hue='variable', palette='muted', ax=ax)
-    plt.xlabel('Medal')
-    plt.ylabel('Average Value')
-    plt.title(f'{selected_sport}: Average Height and Weight by Medal')
+    
+    fig, ax = plt.subplots(figsize=(12, 8))
+    
+    # Define measurement colors
+    measurement_colors = {
+        'Height': '#FF6B6B',  # Warm coral for height
+        'Weight': '#4ECDC4'   # Fresh teal for weight
+    }
+    
+    # Create bar plot
+    for i, measure in enumerate(['Height', 'Weight']):
+        data_for_measure = avg_data[['Medal', measure]].copy()
+        data_for_measure.columns = ['Medal', 'Value']
+        
+        bars = ax.bar(
+            [x + i*0.25 for x in range(len(avg_data))], 
+            data_for_measure['Value'],
+            0.25,
+            label=measure,
+            color=measurement_colors[measure],
+            alpha=0.8
+        )
+        
+        # Add value labels on top of bars
+        for bar in bars:
+            height = bar.get_height()
+            ax.text(
+                bar.get_x() + bar.get_width()/2.,
+                height,
+                f'{height:.1f}',
+                ha='center',
+                va='bottom',
+                fontsize=12
+            )
+    
+    # Enhance bar plot styling
+    ax.set_xlabel('Medal Type', fontsize=14, fontweight='bold')
+    ax.set_ylabel('Value', fontsize=14, fontweight='bold')
+    ax.set_title(f'{selected_sport}: Average Height and Weight by Medal', 
+                 fontsize=16, pad=20)
+    ax.set_xticks([x + 0.25/2 for x in range(len(avg_data))])
+    ax.set_xticklabels(avg_data['Medal'], fontsize=12)
+    ax.grid(True, axis='y', linestyle='--', alpha=0.3)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.legend(fontsize=12, title_fontsize=14)
+    
+    plt.tight_layout()
     st.pyplot(fig)
     
-    # הוספת מידע נוסף
-    st.write("### Insights:")
-    st.write("- The scatter plot shows how height and weight vary across medal types.")
-    st.write("- The bar plot provides an average comparison of height and weight across medal categories.")
-    st.write("- Outliers and clusters can be observed using the scatter plot.")
-
+    # Enhanced insights section
+    st.markdown("""
+    <div style='background-color: #f0f2f6; padding: 20px; border-radius: 10px; margin: 20px 0;'>
+        <h2 style='color: #1f1f1f; margin-bottom: 15px;'>🔍 Key Insights</h2>
+        <ul style='font-size: 18px; color: #1f1f1f; line-height: 1.6;'>
+            <li><strong>Distribution Pattern:</strong> The scatter plot reveals how physical attributes are distributed among medal winners, 
+            showing any clusters or patterns that might indicate optimal characteristics for success.</li>
+            <li><strong>Average Trends:</strong> The bar plot highlights any significant differences in average height and weight 
+            across medal categories, helping identify if certain physical attributes correlate with higher achievement.</li>
+            <li><strong>Sport-Specific Patterns:</strong> By comparing different sports, we can see how the importance of 
+            physical characteristics varies across disciplines.</li>
+        </ul>
+    </div>
+    """, unsafe_allow_html=True)
   
 elif selected_section == 'Amit':
     # Define color scheme
     colors = {
-        'primary': '#1f77b4',    # Blue
-        'accent': '#2ecc71',     # Green
-        'text': '#2c3e50',       # Dark Gray
-        'grid': '#ecf0f1',       # Light Gray
-        'background': '#ffffff'   # White
+        'primary': '#4361EE',    # Vibrant Blue
+        'accent': '#4CC9F0',     # Light Blue
+        'accent2': '#2E8B57',    # Sea Green - representing efficiency/performance       
+        'text': '#2C3E50',       # Dark Gray
+        'grid': '#E9ECEF',       # Light Gray
+        'background': '#FFFFFF'   # White
     }
 
+    # Title 
     st.title("Exploring the correlation between national sports budgets and Olympic performance 💸")
-    st.markdown("""
-        The scatter plot shows a positive relationship between a country's sports budget and Olympic medals won, indicating that 
-        higher budgets may contribute to better performance. The bar plot highlights countries with the most efficient medal production relative
-        to their budget, showing that some nations achieve high success despite smaller budgets.
-        """)
+    
     try:
-        # Load the data
+        # Load and clean data
         budget_df = pd.read_csv('data/Correlation Sports Budget to Olympic Medals.csv', sep=';')
         
-        # Clean the budget data
         budget_df['Budget_Clean'] = (budget_df['Total 2017-2019 (MM U$D)']
             .str.replace('$', '')
             .str.replace(' ', '')
@@ -471,114 +602,167 @@ elif selected_section == 'Amit':
             .astype(float))
         
         budget_df['Total Medals'] = pd.to_numeric(budget_df['Total Medals'])
-
-        # Enhanced metrics display
+        
+        # Display metrics first
         col1, col2, col3 = st.columns(3)
         with col1:
-            st.metric("Average Budget (MM USD)", 
-                    f"${budget_df['Budget_Clean'].mean():,.2f}",
-                    delta_color="normal")
+            st.metric(
+                "Average Budget (MM USD)", 
+                f"${budget_df['Budget_Clean'].mean():,.2f}",
+                delta_color="normal"
+            )
         with col2:
-            st.metric("Average Medals", 
-                    f"{budget_df['Total Medals'].mean():.1f}")
+            st.metric(
+                "Average Medals", 
+                f"{budget_df['Total Medals'].mean():.1f}"
+            )
         with col3:
             correlation = budget_df['Budget_Clean'].corr(budget_df['Total Medals'])
-            st.metric("Budget-Medals Correlation", 
-                    f"{correlation:.2f}")
+            st.metric(
+                "Budget-Medals Correlation", 
+                f"{correlation:.2f}"
+            )
 
-        # Create scatter plot
-        fig1 = plt.figure(figsize=(12, 7))
-        ax1 = fig1.add_subplot(111)
+        # Analysis explanation
+        st.markdown("""
+        <div style='background-color: #f0f2f6; padding: 20px; border-radius: 10px; margin: 20px 0;'>
+            <h2 style='color: #1f1f1f; margin-bottom: 15px;'>Understanding the Analysis 📊</h2>
+            <p style='font-size: 20px; color: #1f1f1f; line-height: 1.6;'>
+                <strong>The Scatter Plot</strong> demonstrates the relationship between a country's sports budget and their Olympic medal count,
+                revealing how financial investment might influence athletic success on the international stage.
+            </p>
+            <p style='font-size: 20px; color: #1f1f1f; line-height: 1.6;'>
+                <strong>The Efficiency Plot</strong> highlights which countries achieve the most medals relative to their budget,
+                showing that success isn't solely dependent on financial resources.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # Calculate Medals per Billion
+        budget_df['Medals per Billion'] = (budget_df['Total Medals'] / budget_df['Budget_Clean']) * 1000
+
+        # Scatter Plot
+        st.markdown("## 📈 Budget vs. Medals Relationship")
+        fig1, ax1 = plt.subplots(figsize=(12, 8))
         
-        # Function to determine which countries to label
         def should_show_label(row):
-            medals_per_billion = (row['Total Medals'] / row['Budget_Clean']) * 1000
-            return (row['Total Medals'] > 20 or 
-                    row['Budget_Clean'] > 10000 or 
-                    medals_per_billion > 2.0 or 
-                    row['Country'] in ['Hungary', 'Netherlands', 'Spain'])
-
-        # Plot points
-        ax1.scatter(budget_df['Budget_Clean'], 
-                budget_df['Total Medals'],
-                s=100,
-                alpha=0.7,
-                color=colors['primary'])
+            # Show only if:
+            # - More than 30 medals OR
+            # - Budget more than 15000M USD OR
+            # - Top 3 in medals per billion OR
+            # - Specifically selected key countries
+            is_top_3_efficient = row['Country'] in budget_df.nlargest(3, 'Medals per Billion')['Country'].values
+            
+            return (row['Total Medals'] > 30 or 
+                    row['Budget_Clean'] > 15000 or 
+                    is_top_3_efficient or 
+                    row['Country'] in ['Netherlands', 'Italy'])
         
-        # Add labels for selected countries
+        # Create scatter plot with enhanced styling
+        scatter = ax1.scatter(
+            budget_df['Budget_Clean'], 
+            budget_df['Total Medals'],
+            s=100,
+            alpha=0.7,
+            color=colors['primary']
+        )
+        
+        # Add country labels with improved visibility
         for _, row in budget_df.iterrows():
             if should_show_label(row):
-                ax1.annotate(row['Country'], 
-                            (row['Budget_Clean'], row['Total Medals']),
-                            xytext=(5, 5),
-                            textcoords='offset points',
-                            fontsize=9,
-                            color=colors['text'],
-                            alpha=0.8)
+                ax1.annotate(
+                    row['Country'], 
+                    (row['Budget_Clean'], row['Total Medals']),
+                    xytext=(5, 5),
+                    textcoords='offset points',
+                    fontsize=11,
+                    color=colors['text'],
+                    fontweight='bold',
+                    alpha=0.9
+                )
         
-        # Style the plot
-        ax1.grid(True, linestyle='--', alpha=0.7, color=colors['grid'])
+        # Enhanced plot styling
+        ax1.grid(True, linestyle='--', alpha=0.4, color=colors['grid'])
         ax1.set_facecolor(colors['background'])
         for spine in ax1.spines.values():
             spine.set_color(colors['grid'])
         
-        ax1.set_xlabel('Sports Budget (Million USD)', fontsize=12, color=colors['text'])
-        ax1.set_ylabel('Olympic Medals', fontsize=12, color=colors['text'])
+        ax1.set_xlabel('Sports Budget (Million USD)', fontsize=14, fontweight='bold')
+        ax1.set_ylabel('Olympic Medals', fontsize=14, fontweight='bold')
         ax1.set_title('National Sports Budget vs Olympic Medals', 
-                    fontsize=14, 
-                    color=colors['text'],
-                    pad=20)
+                    fontsize=16, 
+                    pad=20,
+                    fontweight='bold')
         
         plt.tight_layout()
         st.pyplot(fig1)
         plt.close()
 
-        # Efficiency analysis
-        st.subheader("Budget Efficiency Analysis", divider='gray')
-        budget_df['Medals per Billion'] = (budget_df['Total Medals'] / budget_df['Budget_Clean']) * 1000
+        # Efficiency Analysis
+        st.markdown("""
+        <div style='background-color: #f0f2f6; padding: 20px; border-radius: 10px; margin: 20px 0;'>
+            <h2 style='color: #1f1f1f; margin-bottom: 15px;'>🎯 Budget Efficiency Analysis</h2>
+            <p style='font-size: 18px; color: #1f1f1f; line-height: 1.6;'>
+                Examining how effectively countries convert their sports budget into Olympic medals.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
         
         # Create efficiency bar plot
-        fig2 = plt.figure(figsize=(12, 7))
-        ax2 = fig2.add_subplot(111)
+        fig2, ax2 = plt.subplots(figsize=(12, 8))
         efficiency_data = budget_df.nlargest(10, 'Medals per Billion')
         
-        bars = ax2.bar(efficiency_data['Country'], 
-                    efficiency_data['Medals per Billion'],
-                    color=colors['accent'],
-                    alpha=0.8)
+        bars = ax2.bar(
+            efficiency_data['Country'], 
+            efficiency_data['Medals per Billion'],
+            color=colors['accent2'],
+            alpha=0.8
+        )
         
-        # Style the plot
+        # Enhanced bar plot styling
         ax2.grid(True, linestyle='--', alpha=0.3, color=colors['grid'], axis='y')
         ax2.set_axisbelow(True)
         ax2.set_facecolor(colors['background'])
         for spine in ax2.spines.values():
             spine.set_color(colors['grid'])
         
-        plt.xticks(rotation=45, ha='right')
+        # Rotate labels for better readability
+        plt.xticks(rotation=45, ha='right', fontsize=12)
         
-        # Add value labels
+        # Add value labels with enhanced visibility
         for bar in bars:
             height = bar.get_height()
-            ax2.text(bar.get_x() + bar.get_width()/2., height,
-                    f'{height:.1f}',
-                    ha='center',
-                    va='bottom',
-                    color=colors['text'],
-                    fontsize=10)
+            ax2.text(
+                bar.get_x() + bar.get_width()/2., 
+                height,
+                f'{height:.1f}',
+                ha='center',
+                va='bottom',
+                fontsize=12,
+                fontweight='bold'
+            )
         
         ax2.set_title('Top 10 Countries: Olympic Medals per Billion USD',
-                    fontsize=14,
-                    color=colors['text'],
-                    pad=20)
-        ax2.set_xlabel('Country', fontsize=12, color=colors['text'])
-        ax2.set_ylabel('Medals per Billion USD', fontsize=12, color=colors['text'])
+                    fontsize=16,
+                    pad=20,
+                    fontweight='bold')
+        ax2.set_xlabel('Country', fontsize=14, fontweight='bold')
+        ax2.set_ylabel('Medals per Billion USD', fontsize=14, fontweight='bold')
         
         plt.tight_layout()
         st.pyplot(fig2)
         plt.close()
 
-        # Data table
-        st.subheader("Detailed Data", divider='gray')
+        # Data Table Section
+        st.markdown("""
+        <div style='background-color: #f0f2f6; padding: 20px; border-radius: 10px; margin: 20px 0;'>
+            <h2 style='color: #1f1f1f; margin-bottom: 15px;'>📊 Detailed Country Analysis</h2>
+            <p style='font-size: 18px; color: #1f1f1f; line-height: 1.6;'>
+                Comprehensive breakdown of each country's budget allocation and medal achievements.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+        
         styled_df = (budget_df[['Country', 'Budget_Clean', 'Total Medals', 'Medals per Billion']]
             .sort_values('Medals per Billion', ascending=False)
             .style
@@ -587,17 +771,24 @@ elif selected_section == 'Amit':
                 'Medals per Billion': '{:.1f}',
                 'Total Medals': '{:.0f}'
             })
-            .background_gradient(cmap='Blues', subset=['Medals per Billion'])
-            .set_properties(**{'text-align': 'right'})
+            .background_gradient(cmap='RdYlBu', subset=['Medals per Billion'])
+            .set_properties(**{
+                'text-align': 'right',
+                'font-size': '14px',
+                'padding': '10px'
+            })
             .set_table_styles([
-                {'selector': 'th', 'props': [('background-color', colors['primary']), 
-                                        ('color', 'white'),
-                                        ('font-weight', 'bold'),
-                                        ('padding', '8px')]},
-                {'selector': 'td', 'props': [('padding', '8px')]}
+                {'selector': 'th', 'props': [
+                    ('background-color', colors['primary']),
+                    ('color', 'white'),
+                    ('font-weight', 'bold'),
+                    ('padding', '12px'),
+                    ('font-size', '16px')
+                ]},
+                {'selector': 'td', 'props': [('padding', '10px')]}
             ])
         )
-        st.dataframe(styled_df)
+        st.dataframe(styled_df, height=400)
 
     except Exception as e:
         st.error(f"Error loading or processing data: {str(e)}")
