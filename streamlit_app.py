@@ -624,7 +624,7 @@ elif selected_section == 'Alex':
                 marker_color = None  # Default rainbow for all
 
             # Calculate the median age for each sport
-            sport_medians = filtered_data.groupby('Sport')['Age'].median().reindex(selected_sports)
+            sport_medians = filtered_data.groupby('Sport')['Age'].mean().reindex(selected_sports)
 
             # Create figure with dynamic size based on the number of sports
             fig_width = max(20, len(selected_sports) * 1.5)  # Adjust width
@@ -682,7 +682,7 @@ elif selected_section == 'Alex':
 
                         # Calculate key insights
             mean_age_all = filtered_data['Age'].mean()
-            variance_age = filtered_data['Age'].var()
+            std_age = filtered_data['Age'].std()
             max_age = filtered_data['Age'].max()
 
             # Display key insights in metrics style
@@ -697,8 +697,8 @@ elif selected_section == 'Alex':
 
             with stats_cols[1]:
                 st.metric(
-                    label="Variance of Age",
-                    value=f"{variance_age:.1f}",
+                    label="Standard Deviation of Age",
+                    value=f"{std_age:.1f}",
                     delta=None  # No delta needed here
                 )
 
