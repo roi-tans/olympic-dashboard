@@ -262,7 +262,7 @@ elif selected_section == 'Roi':
 
     # Add title for this section
     st.markdown('''
-    ## :bar_chart: Olympic Athletes Analysis: Height and Weight by Event and Sex
+    ## Olympic Athletes Analysis: Height and Weight by Event and Sex 📊
     ''')
 
     # First, filter by Event
@@ -476,12 +476,12 @@ elif selected_section == 'Idan':
     
     # Sport selection with larger font
     sports_list = data['Sport'].unique().tolist()
-    st.markdown("### 🎯 Select a Sport to Analyze:")
+    st.markdown("### Select a Sport to Analyze 🎯:")
     selected_sport = st.selectbox("", sports_list)  # Empty string to avoid double label
     sport_data = data[data['Sport'] == selected_sport]
     
     # Scatter Plot
-    st.markdown("## 📈 Scatter Plot: Height vs. Weight by Medal")
+    st.markdown("## Scatter Plot: Height vs. Weight by Medal 📈")
     fig, ax = plt.subplots(figsize=(12, 8))
     
     # Define medal colors
@@ -526,7 +526,7 @@ elif selected_section == 'Idan':
     st.pyplot(fig)
     
     # Bar Plot
-    st.markdown("## 📊 Bar Plot: Average Height and Weight by Medal")
+    st.markdown("## Bar Plot: Average Height and Weight by Medal 📊")
     avg_data = sport_data.groupby('Medal')[['Height', 'Weight']].mean().reset_index()
     
     fig, ax = plt.subplots(figsize=(12, 8))
@@ -581,7 +581,7 @@ elif selected_section == 'Idan':
     # Enhanced insights section
     st.markdown("""
     <div style='background-color: #f0f2f6; padding: 20px; border-radius: 10px; margin: 20px 0;'>
-        <h2 style='color: #1f1f1f; margin-bottom: 15px;'>🔍 Key Insights</h2>
+        <h2 style='color: #1f1f1f; margin-bottom: 15px;'>Key Insights 🔍</h2>
         <ul style='font-size: 18px; color: #1f1f1f; line-height: 1.6;'>
             <li><strong>Distribution Pattern:</strong> The scatter plot reveals how physical attributes are distributed among medal winners, 
             showing any clusters or patterns that might indicate optimal characteristics for success.</li>
@@ -718,7 +718,7 @@ elif selected_section == 'Amit':
         # Efficiency Analysis
         st.markdown("""
         <div style='background-color: #f0f2f6; padding: 20px; border-radius: 10px; margin: 20px 0;'>
-            <h2 style='color: #1f1f1f; margin-bottom: 15px;'>🎯 Budget Efficiency Analysis</h2>
+            <h2 style='color: #1f1f1f; margin-bottom: 15px;'>Budget Efficiency Analysis 🎯</h2>
             <p style='font-size: 18px; color: #1f1f1f; line-height: 1.6;'>
                 Examining how effectively countries convert their sports budget into Olympic medals.
             </p>
@@ -773,7 +773,7 @@ elif selected_section == 'Amit':
         # Data Table Section
         st.markdown("""
         <div style='background-color: #f0f2f6; padding: 20px; border-radius: 10px; margin: 20px 0;'>
-            <h2 style='color: #1f1f1f; margin-bottom: 15px;'>📊 Detailed Country Analysis</h2>
+            <h2 style='color: #1f1f1f; margin-bottom: 15px;'>Detailed Country Analysis 📊</h2>
             <p style='font-size: 18px; color: #1f1f1f; line-height: 1.6;'>
                 Comprehensive breakdown of each country's budget allocation and medal achievements.
             </p>
@@ -812,29 +812,97 @@ elif selected_section == 'Amit':
         st.write("Please check if the data file is in the correct location and format.")
 
 elif selected_section == 'Alex':
-
     np.random.seed(111)
 
-    # Main content container
-    with st.container():
-        st.title("To what extent does the age of athletes affect their chances of succeeding in a particular sport? 👴🏼")
+    # Title with white text
+    st.markdown("""
+        <h1 style='color: white; margin: 0 0 24px 0;'>To what extent does the age of athletes affect their chances of succeeding in a particular sport? 👴🏼</h1>
+    """, unsafe_allow_html=True)
+
+    try:
+        # Load data first for metrics
+        athlete_data = pd.read_csv("data/preprocessed_athlete_events.csv")
         
+        # Calculate and display key metrics first
+        valid_age_data = athlete_data[athlete_data['Age'] != -1]
+        
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric(
+                "Average Athlete Age",
+                f"{valid_age_data['Age'].mean():.1f} years"
+            )
+        with col2:
+            st.metric(
+                "Youngest Athlete",
+                f"{valid_age_data['Age'].min():.0f} years"
+            )
+        with col3:
+            st.metric(
+                "Oldest Athlete",
+                f"{valid_age_data['Age'].max():.0f} years"
+            )
+
+        # Enhanced introduction with larger text and better formatting
         st.markdown("""
-        The age distribution plot shows the spread of ages for athletes across various sports. 
-        Different sports display varying age ranges, suggesting that success in certain sports may correlate with specific age brackets. 
-        For example, sports like swimming and athletics show younger peak ages, while sports like basketball and ice hockey exhibit a 
-        broader range, possibly allowing older athletes to succeed.
-        """)
+        <div style='background-color: #f0f2f6; padding: 20px; border-radius: 10px; margin: 20px 0;'>
+            <h2 style='color: #1f1f1f; margin-bottom: 15px;'>Understanding the Analysis 📊</h2>
+            <p style='font-size: 20px; color: #1f1f1f; line-height: 1.6;'>
+                <strong>The Age Distribution Plot</strong> reveals how athlete ages vary across different Olympic sports. 
+                Each point represents an individual athlete, with black markers showing the median age for each sport.
+            </p>
+            <p style='font-size: 20px; color: #1f1f1f; line-height: 1.6;'>
+                By examining these patterns, we can understand how age influences success in different sports, 
+                from those favoring younger athletes to those where experience plays a crucial role.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # Medal selection header without box - white text
+        st.markdown("""
+            <h2 style='color: white; margin: 20px 0 15px 0;'>Select Medal Type to Analyze 🏅</h2>
+        """, unsafe_allow_html=True)
+
+        # Custom CSS with specific text color rules for radio buttons
+        st.markdown("""
+        <style>
+        div.stRadio > div[role='radiogroup'] > label {
+            font-size: 20px !important;
+            padding: 10px 25px !important;
+            margin: 4px 8px !important;
+            background-color: #f8f9fa !important;
+            border-radius: 8px !important;
+            transition: all 0.2s !important;
+        }
+        div.stRadio > div[role='radiogroup'] > label:hover {
+            background-color: #e9ecef !important;
+        }
+        div.stRadio > div[role='radiogroup'] {
+            display: flex !important;
+            justify-content: center !important;
+        }
+        /* Target the actual text elements */
+        div.stRadio > div[role='radiogroup'] label p {
+            color: black !important;
+            font-weight: 500 !important;
+        }
+        </style>
+        """, unsafe_allow_html=True)
         
-        # Medal highlight options using radio buttons
         medal_selection = st.radio(
-            "Highlight Medals:",
+            "",  # Empty label since we have the header above
             options=["All", "Gold", "Silver", "Bronze"],
-            index=0
+            index=0,
+            horizontal=True
         )
 
-        # Load data from CSV
-        athlete_data = pd.read_csv("data/preprocessed_athlete_events.csv")
+        # Sport selection header without box - white text
+        st.markdown("""
+            <h2 style='color: white; margin: 30px 0 15px 0;'>Select Sports to Compare 🎯</h2>
+            <p style='font-size: 18px; color: white; line-height: 1.6; margin-bottom: 15px;'>
+                Choose multiple sports to compare their age distributions. The visualization will update automatically.
+            </p>
+        """, unsafe_allow_html=True)
 
         # Get all unique sports and sort by average age
         sports_avg_age = athlete_data.groupby('Sport')['Age'].mean().sort_values()
@@ -845,56 +913,52 @@ elif selected_section == 'Alex':
             'Basketball', 'Football', 'Speed Skating',
             'Athletics', 'Ice Hockey', 'Swimming'
         ]
-
-        # Filter defaults to only those that exist in the data
         default_sports_in_data = [s for s in default_sports if s in all_sports]
 
-        # Multiselect of sports 
+        # Sport selection
         selected_sports = st.multiselect(
-            'Select Sports:',
+            '',  # Empty label since we have the header above
             options=all_sports,
             default=default_sports_in_data
         )
 
         if len(selected_sports) > 0:
-            # Filter to selected sports
+            # Data processing
             filtered_data = athlete_data[athlete_data['Sport'].isin(selected_sports)].copy()
-
-            # Replace -1 values in Age column with the mean age of this subset
             mean_age = filtered_data['Age'].replace(-1, np.nan).mean()
             filtered_data['Age'] = filtered_data['Age'].replace(-1, mean_age)
 
-            # If a specific medal is selected, filter the data accordingly
             if medal_selection != "All":
                 filtered_data = filtered_data[filtered_data['Medal'] == medal_selection]
 
-            # Determine plot styling based on medal selection
-            if medal_selection == "Gold":
-                marker_color = "#FFD700"  # Gold color
-            elif medal_selection == "Silver":
-                marker_color = "#C0C0C0"  # Silver color
-            elif medal_selection == "Bronze":
-                marker_color = "#CD7F32"  # Bronze color
-            else:
-                marker_color = None  # Default rainbow for all
+            # Determine plot styling
+            medal_colors = {
+                "Gold": "#FFD700",
+                "Silver": "#C0C0C0",
+                "Bronze": "#CD7F32"
+            }
+            marker_color = medal_colors.get(medal_selection, None)
 
-            # Calculate the median age for each sport
+            # Calculate medians
             sport_medians = filtered_data.groupby('Sport')['Age'].mean().reindex(selected_sports)
 
-            # Create figure with dynamic size based on the number of sports
-            fig_width = max(20, len(selected_sports) * 1.5)  # Adjust width
-            fig_height = 10
+            # Create visualization
+            st.markdown("""
+                <h2 style='color: white; margin: 20px 0 15px 0;'>Age Distribution Visualization 📈</h2>
+            """, unsafe_allow_html=True)
             
+            fig_width = max(20, len(selected_sports) * 1.5)
+            fig_height = 10
             fig, ax = plt.subplots(figsize=(fig_width, fig_height))
             
-            # Draw a stripplot with medal-specific or rainbow palette
+            # Create enhanced stripplot
             sns.stripplot(
                 data=filtered_data,
                 x='Sport',
                 y='Age',
-                hue='Sport' if marker_color is None else None,  # Hue for all sports or none
-                palette='rainbow' if marker_color is None else None,  # Rainbow for all sports
-                color=marker_color,  # Medal-specific color
+                hue='Sport' if marker_color is None else None,
+                palette='rainbow' if marker_color is None else None,
+                color=marker_color,
                 size=4,
                 jitter=0.35,
                 alpha=0.6,
@@ -904,13 +968,12 @@ elif selected_section == 'Alex':
                 ax=ax
             )
 
-            # Add median points for each sport
+            # Add median markers
             for sport, median in sport_medians.items():
-                # Find the x-coordinate for the sport
                 x_coord = selected_sports.index(sport)
                 ax.scatter(x_coord, median, color='black', s=100, zorder=5)
                 ax.text(
-                    x_coord, median + 1,  # Slightly above the median point
+                    x_coord, median + 1,
                     f'{median:.1f}',
                     color='black',
                     fontsize=12,
@@ -918,51 +981,51 @@ elif selected_section == 'Alex':
                     ha='center'
                 )
 
-            # Customize the plot
-            ax.set_title(f"Age Distribution in Olympic Sports ({medal_selection} Medals)", fontsize=16, pad=20)
-            ax.set_xlabel("Sport", fontsize=14)
-            ax.set_ylabel("Age", fontsize=14)
+            # Enhanced plot styling
+            ax.set_title(f"Age Distribution in Olympic Sports ({medal_selection} Medals)", 
+                        fontsize=16, pad=20, fontweight='bold')
+            ax.set_xlabel("Sport", fontsize=14, fontweight='bold')
+            ax.set_ylabel("Age", fontsize=14, fontweight='bold')
             plt.xticks(rotation=45, ha='right')
-            ax.grid(True)  # Add gridlines for better readability
-
-            # Place legend outside to the right (only for "All" selection)
+            ax.grid(True, linestyle='--', alpha=0.3)
+            
             if marker_color is None:
                 ax.legend(title='Sport', bbox_to_anchor=(1.05, 1), loc='upper left')
             
-            # Adjust layout to prevent label cutoff
             plt.tight_layout()
-            
-            # Use the full width of the page for the plot
             st.pyplot(fig, use_container_width=True)
 
-                        # Calculate key insights
-            mean_age_all = filtered_data['Age'].mean()
-            std_age = filtered_data['Age'].std()
-            max_age = filtered_data['Age'].max()
+            # Key insights section header
+            st.markdown("""
+                <h2 style='color: white; margin: 30px 0 15px 0;'>Key Insights 🔍</h2>
+                <p style='font-size: 18px; color: white; line-height: 1.6; margin-bottom: 15px;'>
+                    Statistical summary of the selected sports and medals:
+                </p>
+            """, unsafe_allow_html=True)
 
-            # Display key insights in metrics style
             stats_cols = st.columns(3)
-
+            
             with stats_cols[0]:
                 st.metric(
                     label="Mean Age",
-                    value=f"{mean_age_all:.1f} years",
-                    delta=None  # No delta needed here
+                    value=f"{filtered_data['Age'].mean():.1f} years"
                 )
 
             with stats_cols[1]:
                 st.metric(
-                    label="Standard Deviation of Age",
-                    value=f"{std_age:.1f}",
-                    delta=None  # No delta needed here
+                    label="Age Standard Deviation",
+                    value=f"±{filtered_data['Age'].std():.1f} years"
                 )
 
             with stats_cols[2]:
                 st.metric(
-                    label="Maximum Age",
-                    value=f"{max_age:.1f} years",
-                    delta=None  # No delta needed here
+                    label="Age Range",
+                    value=f"{filtered_data['Age'].max() - filtered_data['Age'].min():.1f} years"
                 )
 
         else:
-            st.write("Please select at least one sport to display the visualization.")
+            st.warning("Please select at least one sport to display the visualization.")
+
+    except Exception as e:
+        st.error(f"Error loading or processing data: {str(e)}")
+        st.write("Please check if the data file is in the correct location and format.")
