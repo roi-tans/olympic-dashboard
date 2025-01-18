@@ -13,6 +13,9 @@ import os
 st.set_page_config(
     page_title='Athletes Physical Characteristics Dashboard',
     page_icon=':athletic_shoe:',  # Emoji for a sports theme
+    layout='wide',  # Set layout to wide mode
+    initial_sidebar_state='expanded'
+
 )
 
 # Declare some useful functions.
@@ -328,8 +331,13 @@ elif selected_section == 'Idan':
         data = pd.read_csv(csv_file_path)
         return data
     
-    data = load_data()
-    
+    data1 = load_data()
+
+    data = data1[
+    (data1['Height'] != -1) &
+    (data1['Weight'] != -1)
+]
+
     # ניקוי בסיסי של הנתונים
     data = data.dropna(subset=['Height', 'Weight', 'Medal', 'Year'])
     
@@ -375,24 +383,8 @@ elif selected_section == 'Idan':
 
   
 elif selected_section == 'Amit':
-# Set a modern color palette
-   colors = {
-       'background': '#F0F2F6',
-       'primary': '#2E5077',      # Deep blue
-       'accent': '#FF9F1C',       # Warm orange
-       'text': '#2A2B2E',         # Dark gray
-       'grid': '#E5E5E5'          # Light gray
-   }
-
-   # Set custom style parameters directly
-   plt.rcParams['figure.facecolor'] = colors['background']
-   plt.rcParams['axes.facecolor'] = 'white'
-   plt.rcParams['grid.linestyle'] = '--'
-   plt.rcParams['grid.alpha'] = 0.3
-   plt.rcParams['grid.color'] = colors['grid']
-   
-   st.title('🏅 Olympic Success & National Sports Budgets')
-   st.write("Exploring the relationship between national sports budgets and Olympic performance")
+    st.title('🏅 Olympic Success & National Sports Budgets')
+    st.write("Exploring the relationship between national sports budgets and Olympic performance")
 
    try:
        # Load the data
@@ -541,10 +533,104 @@ elif selected_section == 'Amit':
        )
        st.dataframe(styled_df)
 
-   except Exception as e:
-       st.error(f"Error loading or processing data: {str(e)}")
-       st.write("Please check if the data file is in the correct location and format.")
-                       
+    except Exception as e:
+        st.error(f"Error loading or processing data: {str(e)}")
+        st.write("Please check if the data file is in the correct location and format.")
+
 elif selected_section == 'Alex':
-    st.title("Alex's Visualization")
-    st.write("Coming soon...")
+    np.random.seed(111)
+
+# Main content container
+with st.container():
+    st.title('🏅 How much does age matter at Olympic Sports?')
+    
+    # Medal highlight options
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        show_bronze = st.checkbox('Show Only Bronze Medals', value=False)
+    with col2:
+        show_silver = st.checkbox('Show Only Silver Medals', value=False)
+    with col3:
+        show_gold   = st.checkbox('Show Only Gold Medals', value=False)
+
+    # Load data from CSV
+    athlete_data = pd.read_csv("data/preprocessed_athlete_events.csv")
+
+    # Get all unique sports and sort by average age
+    sports_avg_age = athlete_data.groupby('Sport')['Age'].mean().sort_values()
+    all_sports = sports_avg_age.index.tolist()
+
+    # Define default sports
+    default_sports = [
+        'Basketball', 'Football', 'Speed Skating',
+        'Athletics', 'Ice Hockey', 'Swimming'
+    ]
+
+    # Filter defaults to only those that exist in the data
+    default_sports_in_data = [s for s in default_sports if s in all_sports]
+
+    # Multiselect of sports 
+    selected_sports = st.multiselect(
+        'Select Sports:',
+        options=all_sports,
+        default=default_sports_in_data
+    )
+
+    if len(selected_sports) > 0:
+        # Filter to selected sports
+        filtered_data = athlete_data[athlete_data['Sport'].isin(selected_sports)].copy()
+
+        # Replace -1 values in Age column with the mean age of this subset
+        mean_age = filtered_data['Age'].replace(-1, np.nan).mean()
+        filtered_data['Age'] = filtered_data['Age'].replace(-1, mean_age)
+
+        # If any medals are checked, show ONLY those medals
+        if show_gold or show_silver or show_bronze:
+            medals_to_keep = []
+            if show_gold:
+                medals_to_keep.append('Gold')
+            if show_silver:
+                medals_to_keep.append('Silver')
+            if show_bronze:
+                medals_to_keep.append('Bronze')
+            filtered_data = filtered_data[filtered_data['Medal'].isin(medals_to_keep)]
+
+        # Create figure with dynamic size based on number of sports
+        fig_width = max(20, len(selected_sports) * 1.5)  # Adjust width
+        fig_height = 10
+        
+        fig, ax = plt.subplots(figsize=(fig_width, fig_height))
+        
+        # Draw a stripplot with a rainbow palette, using Sport as hue
+        sns.stripplot(
+            data=filtered_data,
+            x='Sport',
+            y='Age',
+            hue='Sport',             # Hue by sport to get rainbow colors
+            palette='rainbow',       # Rainbow palette
+            size=4,
+            jitter=0.35,
+            alpha=0.6,
+            dodge=False,
+            edgecolor='black',
+            linewidth=0.5,
+            ax=ax
+        )
+
+        # Customize the plot
+        ax.set_title("Age Distribution in Olympic Sports", fontsize=16, pad=20)
+        ax.set_xlabel("Sport", fontsize=14)
+        ax.set_ylabel("Age", fontsize=14)
+        plt.xticks(rotation=45, ha='right')
+        ax.grid(True)  # Add gridlines for better readability
+
+        # Place legend outside to the right
+        ax.legend(title='Sport', bbox_to_anchor=(1.05, 1), loc='upper left')
+        
+        # Adjust layout to prevent label cutoff
+        plt.tight_layout()
+        
+        # Use the full width of the page for the plot
+        st.pyplot(fig, use_container_width=True)
+    else:
+        st.write("Please select at least one sport to display the visualization.")
