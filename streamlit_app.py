@@ -81,6 +81,7 @@ if selected_section == 'Opening':
     st.dataframe(data.head())
 
     # Display research questions
+    st.title("SHOULD WE KEEP BOTH? 👆🏽👇🏽 ")
     st.subheader('Our Research Questions', divider='gray')
     st.markdown("""
     1. **Physical Characteristics Analysis**: How do athletes' physical characteristics (height and weight) vary across different countries and sports?
