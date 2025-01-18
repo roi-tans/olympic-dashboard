@@ -70,8 +70,10 @@ if selected_section == 'Roi':
     athletes_df = get_athletes_data()
 
     st.title("Is there a difference in the physical characteristics of athletes from different countries? 💪🏽")
-
-    # Filter countries (NOC)
+    st.markdown("""The bar plot shows the average height an weight of athletes by country, providing a country-wise comparison of physical characteristics.
+    This helps to identify general trends in athlete physiques across different nations. The second visualization, a scatter plot with a regression line, shows
+     a positive relationship between mean height and weight across countries. The red line represents the trend, while the shaded area indicates variability, showing
+      that taller athletes tend to weigh more on average.""")   
     countries = athletes_df['region'].unique()
 
     selected_countries = st.multiselect(
@@ -333,7 +335,12 @@ if selected_section == 'Roi':
 elif selected_section == 'Idan':
     # כותרת האפליקציה
     st.title("Is there a correlation between height or weight and winning medals, and if so, in which sports? 🏅")
-
+    st.markdown("""The scatter plot shows each athlete’s height and weight, with dots colored by medal. This allows
+    us to see how individual physiques are distributed, spot trends, and identify any outliers. The bar plot compares
+    the average height and weight across the three medal categories, making it clear at a glance if one group tends to
+    be taller or heavier than the others.
+    """)   
+    
     # טעינת הנתונים מתוך קובץ zip
     @st.cache_data
     def load_data():
@@ -411,6 +418,11 @@ elif selected_section == 'Amit':
     }
 
     st.title("Exploring the correlation between national sports budgets and Olympic performance 💸")
+    st.markdown("""
+        The scatter plot shows a positive relationship between a country's sports budget and Olympic medals won, indicating that 
+        higher budgets may contribute to better performance. The bar plot highlights countries with the most efficient medal production relative
+        to their budget, showing that some nations achieve high success despite smaller budgets.
+        """)
     try:
         # Load the data
         budget_df = pd.read_csv('data/Correlation Sports Budget to Olympic Medals.csv', sep=';')
@@ -557,20 +569,28 @@ elif selected_section == 'Amit':
         st.write("Please check if the data file is in the correct location and format.")
 
 elif selected_section == 'Alex':
+
     np.random.seed(111)
 
     # Main content container
     with st.container():
         st.title("To what extent does the age of athletes affect their chances of succeeding in a particular sport? 👴🏼")
-
+        
+        st.markdown("""
+        The age distribution plot shows the spread of ages for athletes across various sports. 
+        Different sports display varying age ranges, suggesting that success in certain sports may correlate with specific age brackets. 
+        For example, sports like swimming and athletics show younger peak ages, while sports like basketball and ice hockey exhibit a 
+        broader range, possibly allowing older athletes to succeed
+        """)
         # Medal highlight options
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            show_bronze = st.checkbox('Show Only Bronze Medals', value=False)
-        with col2:
-            show_silver = st.checkbox('Show Only Silver Medals', value=False)
-        with col3:
-            show_gold   = st.checkbox('Show Only Gold Medals', value=False)
+        np.random.seed(111)
+    
+        # Medal highlight options using radio buttons
+        medal_selection = st.radio(
+            "Highlight Medals:",
+            options=["All", "Gold", "Silver", "Bronze"],
+            index=0
+        )
 
         # Load data from CSV
         athlete_data = pd.read_csv("data/preprocessed_athlete_events.csv")
@@ -603,16 +623,19 @@ elif selected_section == 'Alex':
             mean_age = filtered_data['Age'].replace(-1, np.nan).mean()
             filtered_data['Age'] = filtered_data['Age'].replace(-1, mean_age)
 
-            # If any medals are checked, show ONLY those medals
-            if show_gold or show_silver or show_bronze:
-                medals_to_keep = []
-                if show_gold:
-                    medals_to_keep.append('Gold')
-                if show_silver:
-                    medals_to_keep.append('Silver')
-                if show_bronze:
-                    medals_to_keep.append('Bronze')
-                filtered_data = filtered_data[filtered_data['Medal'].isin(medals_to_keep)]
+            # If a specific medal is selected, filter the data accordingly
+            if medal_selection != "All":
+                filtered_data = filtered_data[filtered_data['Medal'] == medal_selection]
+
+            # Determine plot styling based on medal selection
+            if medal_selection == "Gold":
+                marker_color = "#FFD700"  # Gold color
+            elif medal_selection == "Silver":
+                marker_color = "#C0C0C0"  # Silver color
+            elif medal_selection == "Bronze":
+                marker_color = "#CD7F32"  # Bronze color
+            else:
+                marker_color = None  # Default rainbow for all
 
             # Create figure with dynamic size based on number of sports
             fig_width = max(20, len(selected_sports) * 1.5)  # Adjust width
@@ -620,13 +643,14 @@ elif selected_section == 'Alex':
             
             fig, ax = plt.subplots(figsize=(fig_width, fig_height))
             
-            # Draw a stripplot with a rainbow palette, using Sport as hue
+            # Draw a stripplot with medal-specific or rainbow palette
             sns.stripplot(
                 data=filtered_data,
                 x='Sport',
                 y='Age',
-                hue='Sport',             # Hue by sport to get rainbow colors
-                palette='rainbow',       # Rainbow palette
+                hue='Sport' if marker_color is None else None,  # Hue for all sports or none
+                palette='rainbow' if marker_color is None else None,  # Rainbow for all sports
+                color=marker_color,  # Medal-specific color
                 size=4,
                 jitter=0.35,
                 alpha=0.6,
@@ -637,14 +661,15 @@ elif selected_section == 'Alex':
             )
 
             # Customize the plot
-            ax.set_title("Age Distribution in Olympic Sports", fontsize=16, pad=20)
+            ax.set_title(f"Age Distribution in Olympic Sports ({medal_selection} Medals)", fontsize=16, pad=20)
             ax.set_xlabel("Sport", fontsize=14)
             ax.set_ylabel("Age", fontsize=14)
             plt.xticks(rotation=45, ha='right')
             ax.grid(True)  # Add gridlines for better readability
 
-            # Place legend outside to the right
-            ax.legend(title='Sport', bbox_to_anchor=(1.05, 1), loc='upper left')
+            # Place legend outside to the right (only for "All" selection)
+            if marker_color is None:
+                ax.legend(title='Sport', bbox_to_anchor=(1.05, 1), loc='upper left')
             
             # Adjust layout to prevent label cutoff
             plt.tight_layout()
