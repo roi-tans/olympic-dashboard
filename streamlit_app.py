@@ -6,6 +6,8 @@ from pathlib import Path
 import zipfile
 import os
 import numpy as np
+import zipfile
+import os
 
 # Set the title and favicon that appear in the Browser's tab bar.
 st.set_page_config(
@@ -307,8 +309,69 @@ if selected_section == 'Roi':
 #######################################
 
 elif selected_section == 'Idan':
-    # Additional Visualizations and Insights
-    st.title('🏅 coming soon')
+    st.header('amitbenzona', divider='gray')
+    # כותרת האפליקציה
+    st.title("Olympic Athletes: Physical Attributes and Medal Achievements")
+    
+    # טעינת הנתונים מתוך קובץ zip
+    @st.cache_data
+    def load_data():
+        zip_file_path = 'data/athlete_events.csv.zip'
+        csv_file_path = 'data/athlete_events.csv'
+        
+        # חילוץ הקובץ אם הוא לא חולץ עדיין
+        if not os.path.exists(csv_file_path):
+            with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
+                zip_ref.extractall('data/')
+        
+        # קריאת הקובץ
+        data = pd.read_csv(csv_file_path)
+        return data
+    
+    data = load_data()
+    
+    # ניקוי בסיסי של הנתונים
+    data = data.dropna(subset=['Height', 'Weight', 'Medal', 'Year'])
+    
+    # בחירת ענף ספורט מתוך רשימת האפשרויות
+    sports_list = data['Sport'].unique().tolist()
+    selected_sport = st.selectbox("Select a Sport:", sports_list)
+    
+    # סינון לפי ענף הספורט הנבחר
+    sport_data = data[data['Sport'] == selected_sport]
+    
+    # יצירת גרף פיזור לפי ענף ספורט ומדליה
+    st.write("### Scatter Plot: Height vs. Weight by Medal")
+    fig, ax = plt.subplots()
+    sns.scatterplot(
+        data=sport_data, 
+        x='Height', 
+        y='Weight', 
+        hue='Medal', 
+        palette='muted', 
+        alpha=0.7, 
+        ax=ax
+    )
+    plt.xlabel('Height (cm)')
+    plt.ylabel('Weight (kg)')
+    plt.title(f'{selected_sport}: Height vs. Weight by Medal')
+    st.pyplot(fig)
+    
+    # גרף עמודות ממוצע גובה ומשקל לפי מדליה
+    st.write("### Bar Plot: Average Height and Weight by Medal")
+    avg_data = sport_data.groupby('Medal')[['Height', 'Weight']].mean().reset_index()
+    fig, ax = plt.subplots()
+    sns.barplot(data=avg_data.melt(id_vars='Medal'), x='Medal', y='value', hue='variable', palette='muted', ax=ax)
+    plt.xlabel('Medal')
+    plt.ylabel('Average Value')
+    plt.title(f'{selected_sport}: Average Height and Weight by Medal')
+    st.pyplot(fig)
+    
+    # הוספת מידע נוסף
+    st.write("### Insights:")
+    st.write("- The scatter plot shows how height and weight vary across medal types.")
+    st.write("- The bar plot provides an average comparison of height and weight across medal categories.")
+    st.write("- Outliers and clusters can be observed using the scatter plot.")
 
   
 elif selected_section == 'Amit':
