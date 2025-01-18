@@ -814,7 +814,7 @@ elif selected_section == 'Age distribution by sport':
 
     # Title with white text
     st.markdown("""
-        <h1 style='color: white; margin: 0 0 24px 0;'>To what extent does the age of athletes affect their chances of succeeding in a particular sport? 👴🏼</h1>
+        <h1 style='color: black; margin: 0 0 24px 0;'>To what extent does the age of athletes affect their chances of succeeding in a particular sport? 👴🏼</h1>
     """, unsafe_allow_html=True)
 
     try:
@@ -858,7 +858,7 @@ elif selected_section == 'Age distribution by sport':
 
         # Medal selection header without box - white text
         st.markdown("""
-            <h2 style='color: white; margin: 20px 0 15px 0;'>Select Medal Type to Analyze 🏅</h2>
+            <h2 style='color: black; margin: 20px 0 15px 0;'>Select Medal Type to Analyze 🏅</h2>
         """, unsafe_allow_html=True)
 
         # Custom CSS with specific text color rules for radio buttons
@@ -896,7 +896,7 @@ elif selected_section == 'Age distribution by sport':
 
         # Sport selection header without box - white text
         st.markdown("""
-            <h2 style='color: white; margin: 30px 0 15px 0;'>Select Sports to Compare 🎯</h2>
+            <h2 style='color: black; margin: 30px 0 15px 0;'>Select Sports to Compare 🎯</h2>
             <p style='font-size: 18px; color: white; line-height: 1.6; margin-bottom: 15px;'>
                 Choose multiple sports to compare their age distributions. The visualization will update automatically.
             </p>
@@ -942,7 +942,7 @@ elif selected_section == 'Age distribution by sport':
 
             # Create visualization
             st.markdown("""
-                <h2 style='color: white; margin: 20px 0 15px 0;'>Age Distribution Visualization 📈</h2>
+                <h2 style='color: black; margin: 20px 0 15px 0;'>Age Distribution Visualization 📈</h2>
             """, unsafe_allow_html=True)
             
             fig_width = max(20, len(selected_sports) * 1.5)
@@ -997,8 +997,8 @@ elif selected_section == 'Age distribution by sport':
 
             # Key insights section header
             st.markdown("""
-                <h2 style='color: white; margin: 30px 0 15px 0;'>Key Insights 🔍</h2>
-                <p style='font-size: 18px; color: white; line-height: 1.6; margin-bottom: 15px;'>
+                <h2 style='color: black; margin: 30px 0 15px 0;'>Key Insights 🔍</h2>
+                <p style='font-size: 18px; color: black; line-height: 1.6; margin-bottom: 15px;'>
                     Statistical summary of the selected sports and medals:
                 </p>
             """, unsafe_allow_html=True)
