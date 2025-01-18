@@ -53,7 +53,7 @@ st.markdown("""
 # Create a sidebar menu
 selected_section = st.sidebar.selectbox(
     'Select Visualization Section',
-    ['Opening', 'Roi', 'Idan', 'Amit', 'Alex']
+    ['Introduction', 'Difference in physique between countries', 'Height and Weight Analysis', 'Budget influence on sports', 'Age distribution by sport']
 )
 
 if selected_section == 'Opening':
