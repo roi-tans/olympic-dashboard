@@ -9,14 +9,44 @@ import numpy as np
 import zipfile
 import os
 
-# Set the title and favicon that appear in the Browser's tab bar.
+# At the top of your file, replace the existing st.set_page_config with:
 st.set_page_config(
     page_title='Athletes Physical Characteristics Dashboard',
-    page_icon=':athletic_shoe:',  # Emoji for a sports theme
-    layout='wide',  # Set layout to wide mode
+    page_icon=':athletic_shoe:',
+    layout='centered',  # We'll override this with custom CSS
     initial_sidebar_state='expanded'
-
 )
+
+# Add custom CSS right after set_page_config
+st.markdown("""
+    <style>
+    .block-container {
+        max-width: 1200px;
+        padding-left: 2rem;
+        padding-right: 2rem;
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+        margin: 0 auto;
+    }
+    
+    /* Adjust chart containers */
+    .stPlotlyChart {
+        width: 100%;
+        margin: 0 auto;
+    }
+    
+    /* Optional: Adjust the width of the dataframe */
+    .dataframe {
+        width: 100%;
+        margin: 0 auto;
+    }
+    
+    /* Optional: Adjust sidebar width */
+    .css-1d391kg {
+        width: 20rem;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
 # Declare some useful functions.
 
@@ -39,18 +69,7 @@ if selected_section == 'Roi':
 
     athletes_df = get_athletes_data()
 
-    # Draw the actual page
-
-    # Set the title that appears at the top of the page.
-    '''
-    # :athletic_shoe: Athletes Physical Characteristics Dashboard
-
-    Explore data on the height and weight of athletes from different countries.
-    '''
-
-    # Add some spacing
-    ''
-    ''
+    st.title("Is there a difference in the physical characteristics of athletes from different countries? 💪🏽")
 
     # Filter countries (NOC)
     countries = athletes_df['region'].unique()
@@ -312,10 +331,9 @@ if selected_section == 'Roi':
 #######################################
 
 elif selected_section == 'Idan':
-    st.header('amitbenzona', divider='gray')
     # כותרת האפליקציה
-    st.title("Olympic Athletes: Physical Attributes and Medal Achievements")
-    
+    st.title("Is there a correlation between height or weight and winning medals, and if so, in which sports? 🏅")
+
     # טעינת הנתונים מתוך קובץ zip
     @st.cache_data
     def load_data():
@@ -392,9 +410,7 @@ elif selected_section == 'Amit':
         'background': '#ffffff'   # White
     }
 
-    st.title('🏅 Olympic Success & National Sports Budgets')
-    st.write("Exploring the relationship between national sports budgets and Olympic performance")
-
+    st.title("Exploring the correlation between national sports budgets and Olympic performance 💸")
     try:
         # Load the data
         budget_df = pd.read_csv('data/Correlation Sports Budget to Olympic Medals.csv', sep=';')
@@ -545,8 +561,8 @@ elif selected_section == 'Alex':
 
     # Main content container
     with st.container():
-        st.title('🏅 How much does age matter at Olympic Sports?')
-        
+        st.title("To what extent does the age of athletes affect their chances of succeeding in a particular sport? 👴🏼")
+
         # Medal highlight options
         col1, col2, col3 = st.columns(3)
         with col1:
