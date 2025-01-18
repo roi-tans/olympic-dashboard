@@ -1,2 +1,7 @@
 streamlit
 pandas
+numpy
+zipfile
+pathlib
+matplotlib
+seaborn

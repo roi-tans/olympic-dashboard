@@ -6,8 +6,6 @@ from pathlib import Path
 import zipfile
 import os
 import numpy as np
-import zipfile
-import os
 
 # At the top of your file, replace the existing st.set_page_config with:
 st.set_page_config(
