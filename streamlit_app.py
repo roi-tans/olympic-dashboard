@@ -328,8 +328,13 @@ elif selected_section == 'Idan':
         data = pd.read_csv(csv_file_path)
         return data
     
-    data = load_data()
-    
+    data1 = load_data()
+
+    data = data1[
+    (data1['Height'] != -1) &
+    (data1['Weight'] != -1)
+]
+
     # ניקוי בסיסי של הנתונים
     data = data.dropna(subset=['Height', 'Weight', 'Medal', 'Year'])
     
