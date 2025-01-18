@@ -823,11 +823,9 @@ elif selected_section == 'Alex':
         The age distribution plot shows the spread of ages for athletes across various sports. 
         Different sports display varying age ranges, suggesting that success in certain sports may correlate with specific age brackets. 
         For example, sports like swimming and athletics show younger peak ages, while sports like basketball and ice hockey exhibit a 
-        broader range, possibly allowing older athletes to succeed
+        broader range, possibly allowing older athletes to succeed.
         """)
-        # Medal highlight options
-        np.random.seed(111)
-    
+        
         # Medal highlight options using radio buttons
         medal_selection = st.radio(
             "Highlight Medals:",
@@ -880,7 +878,10 @@ elif selected_section == 'Alex':
             else:
                 marker_color = None  # Default rainbow for all
 
-            # Create figure with dynamic size based on number of sports
+            # Calculate the median age for each sport
+            sport_medians = filtered_data.groupby('Sport')['Age'].mean().reindex(selected_sports)
+
+            # Create figure with dynamic size based on the number of sports
             fig_width = max(20, len(selected_sports) * 1.5)  # Adjust width
             fig_height = 10
             
@@ -903,6 +904,20 @@ elif selected_section == 'Alex':
                 ax=ax
             )
 
+            # Add median points for each sport
+            for sport, median in sport_medians.items():
+                # Find the x-coordinate for the sport
+                x_coord = selected_sports.index(sport)
+                ax.scatter(x_coord, median, color='black', s=100, zorder=5)
+                ax.text(
+                    x_coord, median + 1,  # Slightly above the median point
+                    f'{median:.1f}',
+                    color='black',
+                    fontsize=12,
+                    fontweight='bold',
+                    ha='center'
+                )
+
             # Customize the plot
             ax.set_title(f"Age Distribution in Olympic Sports ({medal_selection} Medals)", fontsize=16, pad=20)
             ax.set_xlabel("Sport", fontsize=14)
@@ -919,6 +934,35 @@ elif selected_section == 'Alex':
             
             # Use the full width of the page for the plot
             st.pyplot(fig, use_container_width=True)
+
+                        # Calculate key insights
+            mean_age_all = filtered_data['Age'].mean()
+            std_age = filtered_data['Age'].std()
+            max_age = filtered_data['Age'].max()
+
+            # Display key insights in metrics style
+            stats_cols = st.columns(3)
+
+            with stats_cols[0]:
+                st.metric(
+                    label="Mean Age",
+                    value=f"{mean_age_all:.1f} years",
+                    delta=None  # No delta needed here
+                )
+
+            with stats_cols[1]:
+                st.metric(
+                    label="Standard Deviation of Age",
+                    value=f"{std_age:.1f}",
+                    delta=None  # No delta needed here
+                )
+
+            with stats_cols[2]:
+                st.metric(
+                    label="Maximum Age",
+                    value=f"{max_age:.1f} years",
+                    delta=None  # No delta needed here
+                )
+
         else:
             st.write("Please select at least one sport to display the visualization.")
-        
