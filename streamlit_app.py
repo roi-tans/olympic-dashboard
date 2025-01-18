@@ -56,7 +56,7 @@ selected_section = st.sidebar.selectbox(
     ['Introduction', 'Difference in physique between countries', 'Height and Weight Analysis', 'Budget influence on sports', 'Age distribution by sport']
 )
 
-if selected_section == 'Opening':
+if selected_section == 'Introduction':
     # Title
     st.title('🏅 Olympic Athletes Analysis Dashboard 🌟')
     
@@ -139,7 +139,7 @@ if selected_section == 'Opening':
         st.error(f"Error loading or processing data: {str(e)}")
         st.write("Please check if the data file is in the correct location and format.")
 
-elif selected_section == 'Roi':
+elif selected_section == 'Difference in physique between countries':
     @st.cache_data
     def get_athletes_data():
         """Grab athletes' data from a CSV file."""
@@ -431,7 +431,7 @@ elif selected_section == 'Roi':
 
 #######################################
 
-elif selected_section == 'Idan':
+elif selected_section == 'Height and Weight Analysis':
     # Title and Introduction
     st.title("Is there a correlation between height or weight and winning medals, and if so, in which sports? 📏")
     
@@ -593,7 +593,7 @@ elif selected_section == 'Idan':
     </div>
     """, unsafe_allow_html=True)
   
-elif selected_section == 'Amit':
+elif selected_section == 'Budget influence on sports':
     # Define color scheme
     colors = {
         'primary': '#4361EE',    # Vibrant Blue
@@ -811,7 +811,7 @@ elif selected_section == 'Amit':
         st.error(f"Error loading or processing data: {str(e)}")
         st.write("Please check if the data file is in the correct location and format.")
 
-elif selected_section == 'Alex':
+elif selected_section == 'Age distribution by sport':
     np.random.seed(111)
 
     # Title with white text
