@@ -445,12 +445,12 @@ elif selected_section == 'Alex':
 
             filtered_data['DisplayMedal'] = filtered_data.apply(decide_display_category, axis=1)
 
-            # Simple color palette with transparent white for non-medals
+            # Simple color palette with vibrant colors for medals
             display_palette = {
                 'No Medal': (1, 1, 1, 0.3),  # White with 0.3 opacity
-                'Gold': 'gold',
-                'Silver': 'silver',
-                'Bronze': 'brown'
+                'Gold': '#FFD700',  # Changed to gold
+                'Silver': '#C0C0C0',  # Changed to silver
+                'Bronze': '#CD7F32'  # Changed to bronze
             }
 
             # Create figure with dynamic size based on number of sports
@@ -476,22 +476,23 @@ elif selected_section == 'Alex':
             )
 
             # Customize the plot
-            ax.set_title("Age Distribution in Olympic Sports", fontsize=14, pad=20)
-            ax.set_xlabel("Sport", fontsize=12)
-            ax.set_ylabel("Age", fontsize=12)
+            ax.set_title("Age Distribution in Olympic Sports", fontsize=16, pad=20)
+            ax.set_xlabel("Sport", fontsize=14)
+            ax.set_ylabel("Age", fontsize=14)
             plt.xticks(rotation=45, ha='right')
+            ax.grid(True)  # Add gridlines for better readability
             
             # Customize legend
             handles = []
             labels = []
             if show_gold:
-                handles.append(plt.scatter([], [], color='gold', edgecolor='black', linewidth=0.5))
+                handles.append(plt.scatter([], [], color='#FFD700', edgecolor='black', linewidth=0.5))
                 labels.append('Gold Medal')
             if show_silver:
-                handles.append(plt.scatter([], [], color='silver', edgecolor='black', linewidth=0.5))
+                handles.append(plt.scatter([], [], color='#C0C0C0', edgecolor='black', linewidth=0.5))
                 labels.append('Silver Medal')
             if show_bronze:
-                handles.append(plt.scatter([], [], color='brown', edgecolor='black', linewidth=0.5))
+                handles.append(plt.scatter([], [], color='#CD7F32', edgecolor='black', linewidth=0.5))
                 labels.append('Bronze Medal')
                 
             if handles:
