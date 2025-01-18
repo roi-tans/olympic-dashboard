@@ -375,79 +375,176 @@ elif selected_section == 'Idan':
 
   
 elif selected_section == 'Amit':
-    st.title('🏅 Olympic Success & National Sports Budgets')
-    st.write("Exploring the relationship between national sports budgets and Olympic performance")
+# Set a modern color palette
+   colors = {
+       'background': '#F0F2F6',
+       'primary': '#2E5077',      # Deep blue
+       'accent': '#FF9F1C',       # Warm orange
+       'text': '#2A2B2E',         # Dark gray
+       'grid': '#E5E5E5'          # Light gray
+   }
 
-    try:
-        # Load the data
-        budget_df = pd.read_csv('data/Correlation Sports Budget to Olympic Medals.csv', sep=';')
-        
-        # Clean the budget data - simplified cleaning
-        budget_df['Budget_Clean'] = (budget_df['Total 2017-2019 (MM U$D)']
-            .str.replace('$', '')
-            .str.replace(' ', '')
-            .str.replace('.', '')
-            .str.replace(',', '.')
-            .astype(float))
-        
-        budget_df['Total Medals'] = pd.to_numeric(budget_df['Total Medals'])
+   # Set custom style parameters directly
+   plt.rcParams['figure.facecolor'] = colors['background']
+   plt.rcParams['axes.facecolor'] = 'white'
+   plt.rcParams['grid.linestyle'] = '--'
+   plt.rcParams['grid.alpha'] = 0.3
+   plt.rcParams['grid.color'] = colors['grid']
+   
+   st.title('🏅 Olympic Success & National Sports Budgets')
+   st.write("Exploring the relationship between national sports budgets and Olympic performance")
 
-        # Display key metrics
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            st.metric("Average Budget (MM USD)", f"${budget_df['Budget_Clean'].mean():,.2f}")
-        with col2:
-            st.metric("Average Medals", f"{budget_df['Total Medals'].mean():.1f}")
-        with col3:
-            correlation = budget_df['Budget_Clean'].corr(budget_df['Total Medals'])
-            st.metric("Budget-Medals Correlation", f"{correlation:.2f}")
+   try:
+       # Load the data
+       budget_df = pd.read_csv('data/Correlation Sports Budget to Olympic Medals.csv', sep=';')
+       
+       # Clean the budget data - simplified cleaning
+       budget_df['Budget_Clean'] = (budget_df['Total 2017-2019 (MM U$D)']
+           .str.replace('$', '')
+           .str.replace(' ', '')
+           .str.replace('.', '')
+           .str.replace(',', '.')
+           .astype(float))
+       
+       budget_df['Total Medals'] = pd.to_numeric(budget_df['Total Medals'])
 
-        # Create main scatter plot
-        fig1, ax1 = plt.subplots(figsize=(10, 6))
-        sns.scatterplot(data=budget_df, x='Budget_Clean', y='Total Medals', ax=ax1)
-        
-        # Add labels and title
-        ax1.set_xlabel('Sports Budget (Million USD)')
-        ax1.set_ylabel('Olympic Medals')
-        ax1.set_title('National Sports Budget vs Olympic Medals')
-        
-        # Add country labels
-        for _, row in budget_df.iterrows():
-            ax1.annotate(row['Country'], (row['Budget_Clean'], row['Total Medals']))
-        
-        st.pyplot(fig1)
-        plt.close()
+       # Enhanced metrics display
+       col1, col2, col3 = st.columns(3)
+       with col1:
+           st.metric("Average Budget (MM USD)", 
+                    f"${budget_df['Budget_Clean'].mean():,.2f}",
+                    delta_color="normal")
+       with col2:
+           st.metric("Average Medals", 
+                    f"{budget_df['Total Medals'].mean():.1f}")
+       with col3:
+           correlation = budget_df['Budget_Clean'].corr(budget_df['Total Medals'])
+           st.metric("Budget-Medals Correlation", 
+                    f"{correlation:.2f}")
 
-        # Calculate and display efficiency
-        st.subheader("Budget Efficiency Analysis", divider='gray')
-        budget_df['Medals per Billion'] = (budget_df['Total Medals'] / budget_df['Budget_Clean']) * 1000
-        
-        # Create efficiency bar plot
-        fig2, ax2 = plt.subplots(figsize=(12, 6))
-        efficiency_data = budget_df.nlargest(10, 'Medals per Billion')
-        sns.barplot(data=efficiency_data, x='Country', y='Medals per Billion', ax=ax2)
-        plt.xticks(rotation=45)
-        ax2.set_title('Top 10 Countries: Olympic Medals per Billion USD')
-        
-        st.pyplot(fig2)
-        plt.close()
+       # Create enhanced scatter plot
+       fig1, ax1 = plt.subplots(figsize=(12, 7))
+       
+       # Create a mask for countries to show labels
+       def should_show_label(row):
+           # Always show countries with:
+           # - More than 20 medals OR
+           # - Budget more than 10000M USD OR
+           # - High efficiency (medals per budget) OR
+           # - Selected important countries
+           medals_per_billion = (row['Total Medals'] / row['Budget_Clean']) * 1000
+           
+           return (row['Total Medals'] > 20 or 
+                   row['Budget_Clean'] > 10000 or 
+                   medals_per_billion > 2.0 or  # High efficiency
+                   row['Country'] in ['Hungary', 'Netherlands', 'Spain'])  # Important cases
 
-        # Display data table
-        st.subheader("Detailed Data", divider='gray')
-        st.dataframe(
-            budget_df[['Country', 'Budget_Clean', 'Total Medals', 'Medals per Billion']]
-            .sort_values('Medals per Billion', ascending=False)
-            .style.format({
-                'Budget_Clean': '${:,.2f}M',
-                'Medals per Billion': '{:.1f}',
-                'Total Medals': '{:.0f}'
-            })
-        )
+       # Plot all points
+       ax1.scatter(budget_df['Budget_Clean'], 
+                  budget_df['Total Medals'],
+                  s=100,  # Larger points
+                  alpha=0.7,  # Some transparency
+                  color=colors['primary'])
+       
+       # Add labels only for selected countries
+       for _, row in budget_df.iterrows():
+           if should_show_label(row):
+               ax1.annotate(row['Country'], 
+                           (row['Budget_Clean'], row['Total Medals']),
+                           xytext=(5, 5),
+                           textcoords='offset points',
+                           fontsize=9,
+                           color=colors['text'],
+                           alpha=0.8)
+       
+       # Enhance grid and spines
+       ax1.grid(True, linestyle='--', alpha=0.7, color=colors['grid'])
+       for spine in ax1.spines.values():
+           spine.set_color(colors['grid'])
+       
+       # Improved labels and title
+       ax1.set_xlabel('Sports Budget (Million USD)', fontsize=12, color=colors['text'])
+       ax1.set_ylabel('Olympic Medals', fontsize=12, color=colors['text'])
+       ax1.set_title('National Sports Budget vs Olympic Medals', 
+                    fontsize=14, 
+                    color=colors['text'],
+                    pad=20)
+       
+       # Adjust layout and display
+       plt.tight_layout()
+       st.pyplot(fig1)
+       plt.close()
 
-    except Exception as e:
-        st.error(f"Error loading or processing data: {str(e)}")
-        st.write("Please check if the data file is in the correct location and format.")
+       # Enhanced efficiency analysis
+       st.subheader("Budget Efficiency Analysis", divider='gray')
+       budget_df['Medals per Billion'] = (budget_df['Total Medals'] / budget_df['Budget_Clean']) * 1000
+       
+       # Create enhanced efficiency bar plot
+       fig2, ax2 = plt.subplots(figsize=(12, 7))
+       efficiency_data = budget_df.nlargest(10, 'Medals per Billion')
+       
+       # Create bar plot manually instead of using seaborn
+       bars = ax2.bar(efficiency_data['Country'], 
+                     efficiency_data['Medals per Billion'],
+                     color=colors['accent'],
+                     alpha=0.8)
+       
+       # Enhance grid and spines
+       ax2.grid(True, linestyle='--', alpha=0.3, color=colors['grid'], axis='y')
+       ax2.set_axisbelow(True)
+       for spine in ax2.spines.values():
+           spine.set_color(colors['grid'])
+       
+       # Rotate and align the tick labels so they look better
+       plt.xticks(rotation=45, ha='right')
+       
+       # Add value labels on top of each bar
+       for bar in bars:
+           height = bar.get_height()
+           ax2.text(bar.get_x() + bar.get_width()/2., height,
+                   f'{height:.1f}',
+                   ha='center',
+                   va='bottom',
+                   color=colors['text'],
+                   fontsize=10)
+       
+       ax2.set_title('Top 10 Countries: Olympic Medals per Billion USD',
+                    fontsize=14,
+                    color=colors['text'],
+                    pad=20)
+       ax2.set_xlabel('Country', fontsize=12, color=colors['text'])
+       ax2.set_ylabel('Medals per Billion USD', fontsize=12, color=colors['text'])
+       
+       plt.tight_layout()
+       st.pyplot(fig2)
+       plt.close()
 
+       # Enhanced data table
+       st.subheader("Detailed Data", divider='gray')
+       styled_df = (budget_df[['Country', 'Budget_Clean', 'Total Medals', 'Medals per Billion']]
+           .sort_values('Medals per Billion', ascending=False)
+           .style
+           .format({
+               'Budget_Clean': '${:,.2f}M',
+               'Medals per Billion': '{:.1f}',
+               'Total Medals': '{:.0f}'
+           })
+           .background_gradient(cmap='Blues', subset=['Medals per Billion'])  # Add color gradient
+           .set_properties(**{'text-align': 'right'})  # Right-align numbers
+           .set_table_styles([
+               {'selector': 'th', 'props': [('background-color', colors['primary']), 
+                                          ('color', 'white'),
+                                          ('font-weight', 'bold'),
+                                          ('padding', '8px')]},
+               {'selector': 'td', 'props': [('padding', '8px')]}
+           ])
+       )
+       st.dataframe(styled_df)
+
+   except Exception as e:
+       st.error(f"Error loading or processing data: {str(e)}")
+       st.write("Please check if the data file is in the correct location and format.")
+                       
 elif selected_section == 'Alex':
     st.title("Alex's Visualization")
     st.write("Coming soon...")
