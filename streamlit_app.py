@@ -984,9 +984,11 @@ elif selected_section == 'Age distribution by sport':
             # Enhanced plot styling
             ax.set_title(f"Age Distribution in Olympic Sports ({medal_selection} Medals)", 
                         fontsize=16, pad=20, fontweight='bold')
-            ax.set_xlabel("Sport", fontsize=14, fontweight='bold')
-            ax.set_ylabel("Age", fontsize=14, fontweight='bold')
-            plt.xticks(rotation=45, ha='right')
+            ax.set_xlabel("Sport", fontsize=18, fontweight='bold')
+            ax.set_ylabel("Age", fontsize=18, fontweight='bold')
+            plt.xticks(rotation=45, ha='right' , fontsize=14, fontweight='bold')
+            ax.spines['top'].set_visible(False)
+            ax.spines['right'].set_visible(False)
             ax.grid(True, linestyle='--', alpha=0.3)
             
             if marker_color is None:
