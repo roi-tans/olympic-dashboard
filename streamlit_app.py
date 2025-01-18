@@ -81,7 +81,6 @@ if selected_section == 'Opening':
     st.dataframe(data.head())
 
     # Display research questions
-    st.title("SHOULD WE KEEP BOTH? 👆🏽👇🏽 ")
     st.subheader('Our Research Questions', divider='gray')
     st.markdown("""
     1. **Physical Characteristics Analysis**: How do athletes' physical characteristics (height and weight) vary across different countries and sports?
@@ -91,15 +90,6 @@ if selected_section == 'Opening':
     3. **Budget Impact**: Is there a correlation between national sports budgets and Olympic medal counts?
 
     4. **Age Distribution**: How does age distribution vary across different Olympic sports, and what role does it play in medal achievements?
-
-    These questions guide our analysis across the different sections of this dashboard, each focusing on specific aspects of Olympic athletics and performance.
-
-    **Navigate using the sidebar to explore each analysis section:**
-    - **Roi's Analysis**: Focuses on athletes' physical characteristics by country
-    - **Idan's Analysis**: Explores the relationship between physical attributes and medals
-    - **Amit's Analysis**: Investigates national sports budgets and Olympic success
-    - **Alex's Analysis**: Examines age distributions across Olympic sports
-    """)
 
 elif selected_section == 'Roi':
     @st.cache_data
