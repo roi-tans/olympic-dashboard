@@ -182,40 +182,42 @@ elif selected_section == 'Roi':
         weight_col = 'weight_median'
 
     # Plotting Height vs Weight by Country
-    st.header(f'{metric_type} Height and Weight by Country', divider='gray')
-    
+    # Sort the data by the selected metric (height or weight) in descending order
+    sorted_athletes_df = filtered_athletes_df.sort_values(by=height_col, ascending=False)
+
+    # Plotting Mean Height and Weight by Country (Sorted)
+    st.header(f'{metric_type} Height and Weight by Country (Sorted)', divider='gray')
 
     # Create figure
     fig, ax = plt.subplots(figsize=(14, 7))
-    
 
     # Calculate bar positions
-    x = np.arange(len(filtered_athletes_df['region'].unique()))
+    x = np.arange(len(sorted_athletes_df['region'].unique()))
     width = 0.35
 
     # Create bars
     height_bars = ax.bar(x - width/2, 
-                        filtered_athletes_df[height_col], 
+                        sorted_athletes_df[height_col], 
                         width, 
                         label='Height',
-                        color='#4A90E2',  # Nice blue color
+                        color='#4A90E2',  # Vibrant blue color
                         alpha=0.8)
 
     weight_bars = ax.bar(x + width/2, 
-                        filtered_athletes_df[weight_col], 
+                        sorted_athletes_df[weight_col], 
                         width, 
                         label='Weight',
-                        color='#F39C12',  # Nice gold color
+                        color='#73BDF2',  # Vibrant gold color
                         alpha=0.8)
 
     # Customize the plot
-    ax.set_title(f'{metric_type} Height and Weight of Athletes by Country')
-    ax.set_xlabel('Country (region)')
-    ax.set_ylabel(f'{metric_type} Value')
+    ax.set_title(f'{metric_type} Height and Weight of Athletes by Country (Sorted)', fontsize=16, color='#333333')
+    ax.set_xlabel('Country (region)', fontsize=12, color='#333333')
+    ax.set_ylabel(f'{metric_type} Value', fontsize=12, color='#333333')
 
     # Set x-axis ticks
     ax.set_xticks(x)
-    ax.set_xticklabels(filtered_athletes_df['region'], rotation=45, ha='right')
+    ax.set_xticklabels(sorted_athletes_df['region'], rotation=45, ha='right', fontsize=10)
 
     # Add value labels on the bars
     def add_value_labels(bars):
@@ -223,13 +225,16 @@ elif selected_section == 'Roi':
             height = bar.get_height()
             ax.text(bar.get_x() + bar.get_width()/2., height,
                     f'{height:.1f}',
-                    ha='center', va='bottom')
+                    ha='center', va='bottom', fontsize=9)
 
     add_value_labels(height_bars)
     add_value_labels(weight_bars)
 
     # Add legend
-    ax.legend()
+    ax.legend(fontsize=10)
+
+    # Add gridlines
+    ax.grid(True, linestyle='--', alpha=0.6, axis='y')
 
     # Adjust layout
     plt.tight_layout()
@@ -237,9 +242,7 @@ elif selected_section == 'Roi':
     # Show the plot in Streamlit
     st.pyplot(fig)
 
-    # Display the filtered data in a table
-    st.header(f'{metric_type} Height and Weight Data', divider='gray')
-    st.dataframe(filtered_athletes_df[['region', height_col, weight_col]])
+    # Function to load the grouped data
     def load_grouped_data2():
         """Load the grouped data for additional visualizations."""
         # Adjust the path to your CSV file
@@ -287,63 +290,47 @@ elif selected_section == 'Roi':
     filtered_grouped_df = events_filtered_df[events_filtered_df['region'].isin(chosen_nocs)]
 
     # Create tabs for different visualizations
-    tab1, tab2, tab3 = st.tabs(["Height vs Weight Analysis", "Event Comparisons", "Country Analysis"])
+    tab1, tab2 = st.tabs(["Height vs Weight Analysis", "Country Analysis"])
 
     with tab1:
-
         st.header('Analysis')
 
         # Simple scatter plot with regression line
         fig, ax = plt.subplots(figsize=(10, 6))
-        sns.scatterplot(data=filtered_grouped_df, 
-                        x='mean_height', 
-                        y='mean_weight',
-                        s=100)
-        sns.regplot(data=filtered_grouped_df, 
-                    x='mean_height', 
-                    y='mean_weight',
-                    scatter=False,
-                    color='red')
+        
+        # Using a custom color for scatterplot dots
+        sns.scatterplot(
+            data=filtered_grouped_df,
+            x='mean_height',
+            y='mean_weight',
+            s=100,
+            color='#2a9d8f',  # Custom teal-green color
+            alpha=0.8
+        )
+        
+        # Regression line in a complementary color
+        sns.regplot(
+            data=filtered_grouped_df,
+            x='mean_height',
+            y='mean_weight',
+            scatter=False,
+            color='#e76f51',  # Warm coral color for contrast
+            line_kws={"lw": 2, "alpha": 0.9}
+        )
+        
+        # Styling adjustments
+        ax.set_title('Height vs. Weight Analysis', fontsize=16, color='#333333')
+        ax.set_xlabel('Mean Height (cm)', fontsize=12, color='#333333')
+        ax.set_ylabel('Mean Weight (kg)', fontsize=12, color='#333333')
+        ax.grid(True, linestyle='--', alpha=0.6)
+        
         st.pyplot(fig)
 
     with tab2:
-        st.header('Event Analysis', divider='gray')
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            # Height by Event Box Plot
-            fig_height, ax_height = plt.subplots(figsize=(10, len(chosen_events)*0.4 + 6))
-            sns.boxplot(
-                data=filtered_grouped_df,
-                y='Event',
-                x='mean_height',
-                orient='h',
-                ax=ax_height
-            )
-            ax_height.set_title('Height Distribution by Event')
-            ax_height.set_xlabel('Height (cm)')
-            st.pyplot(fig_height)
-        
-        with col2:
-            # Weight by Event Box Plot
-            fig_weight, ax_weight = plt.subplots(figsize=(10, len(chosen_events)*0.4 + 6))
-            sns.boxplot(
-                data=filtered_grouped_df,
-                y='Event',
-                x='mean_weight',
-                orient='h',
-                ax=ax_weight
-            )
-            ax_weight.set_title('Weight Distribution by Event')
-            ax_weight.set_xlabel('Weight (kg)')
-            st.pyplot(fig_weight)
-
-    with tab3:
         st.header('Country Comparison', divider='gray')
         
         # Calculate average BMI for each country
-        filtered_grouped_df['BMI'] = filtered_grouped_df['mean_weight'] / (filtered_grouped_df['mean_height']/100)**2
+        filtered_grouped_df['BMI'] = filtered_grouped_df['mean_weight'] / (filtered_grouped_df['mean_height'] / 100) ** 2
         
         country_stats = filtered_grouped_df.groupby('region').agg({
             'mean_height': 'mean',
@@ -351,37 +338,67 @@ elif selected_section == 'Roi':
             'BMI': 'mean'
         }).round(2)
         
-        # Create bar chart comparing countries
-        fig_countries, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(15, 6))
+        # Create bar chart comparing countries with vibrant colors
+        fig_countries, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18, 6), dpi=100)
         
         # Height comparison
-        sns.barplot(data=filtered_grouped_df, x='region', y='mean_height', ci=None, ax=ax1)
-        ax1.set_title('Average Height by Country')
-        ax1.set_ylabel('Height (cm)')
+        sns.barplot(
+            data=filtered_grouped_df,
+            x='region',
+            y='mean_height',
+            ci=None,
+            palette='crest',  # Vibrant green-blue palette
+            ax=ax1
+        )
+        ax1.set_title('Average Height by Country', fontsize=14, color='#333333')
+        ax1.set_ylabel('Height (cm)', fontsize=12, color='#333333')
         ax1.tick_params(axis='x', rotation=45)
+        ax1.grid(True, linestyle='--', alpha=0.6)
         
         # Weight comparison
-        sns.barplot(data=filtered_grouped_df, x='region', y='mean_weight', ci=None, ax=ax2)
-        ax2.set_title('Average Weight by Country')
-        ax2.set_ylabel('Weight (kg)')
+        sns.barplot(
+            data=filtered_grouped_df,
+            x='region',
+            y='mean_weight',
+            ci=None,
+            palette='flare',  # Vibrant pink-red palette
+            ax=ax2
+        )
+        ax2.set_title('Average Weight by Country', fontsize=14, color='#333333')
+        ax2.set_ylabel('Weight (kg)', fontsize=12, color='#333333')
         ax2.tick_params(axis='x', rotation=45)
+        ax2.grid(True, linestyle='--', alpha=0.6)
         
         # BMI comparison
-        sns.barplot(data=filtered_grouped_df, x='region', y='BMI', ci=None, ax=ax3)
-        ax3.set_title('Average BMI by Country')
-        ax3.set_ylabel('BMI')
+        sns.barplot(
+            data=filtered_grouped_df,
+            x='region',
+            y='BMI',
+            ci=None,
+            palette='mako',  # Vibrant teal-blue palette
+            ax=ax3
+        )
+        ax3.set_title('Average BMI by Country', fontsize=14, color='#333333')
+        ax3.set_ylabel('BMI', fontsize=12, color='#333333')
         ax3.tick_params(axis='x', rotation=45)
+        ax3.grid(True, linestyle='--', alpha=0.6)
         
+        # Layout adjustments
         plt.tight_layout()
         st.pyplot(fig_countries)
         
         # Display detailed statistics
         st.subheader('Detailed Country Statistics')
-        st.dataframe(country_stats.style.format({
-            'mean_height': '{:.1f} cm',
-            'mean_weight': '{:.1f} kg',
-            'BMI': '{:.1f}'
-        }))
+        st.dataframe(
+            country_stats.style.format({
+                'mean_height': '{:.1f} cm',
+                'mean_weight': '{:.1f} kg',
+                'BMI': '{:.1f}'
+            })
+        )
+    
+    # Add title for this section
+
 
     # Add key insights section
     st.header('Key Insights', divider='gray')
@@ -904,3 +921,4 @@ elif selected_section == 'Alex':
             st.pyplot(fig, use_container_width=True)
         else:
             st.write("Please select at least one sport to display the visualization.")
+        
