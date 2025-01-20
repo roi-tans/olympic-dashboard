@@ -818,12 +818,15 @@ elif selected_section == 'Age distribution by sport':
     """, unsafe_allow_html=True)
 
     try:
-        # Load data first for metrics
+        # Load data and filter out invalid measurements
         athlete_data = pd.read_csv("data/preprocessed_athlete_events.csv")
+        valid_age_data = athlete_data[
+            (athlete_data['Age'] != -1) & 
+            (athlete_data['Height'] > 0) &  # Filter out zero heights
+            (athlete_data['Weight'] > 0)     # Filter out zero weights
+        ]
         
-        # Calculate and display key metrics first
-        valid_age_data = athlete_data[athlete_data['Age'] != -1]
-        
+        # Display key age metrics
         col1, col2, col3 = st.columns(3)
         with col1:
             st.metric(
@@ -841,7 +844,91 @@ elif selected_section == 'Age distribution by sport':
                 f"{valid_age_data['Age'].max():.0f} years"
             )
 
-        # Enhanced introduction with larger text and better formatting
+        # Physical Attributes Distribution Section with styled container
+        st.markdown("""
+        <div style='background-color: #f0f2f6; padding: 20px; border-radius: 10px; margin: 20px 0;'>
+            <h2 style='color: #1f1f1f; margin-bottom: 15px;'>Athletes' Physical Attributes Distribution 📊</h2>
+            <p style='font-size: 18px; color: #1f1f1f; line-height: 1.6; margin-bottom: 20px;'>
+                Explore the distribution of athletes' height and weight across Olympic sports. The histograms show 
+                the frequency of different physical measurements, with red lines indicating the mean values.
+            </p>
+        """, unsafe_allow_html=True)
+
+        # Create two columns for the histograms
+        hist_col1, hist_col2 = st.columns(2)
+
+        with hist_col1:
+            # Height histogram with enhanced styling    
+            fig_height = plt.figure(figsize=(10, 6))
+            plt.hist(valid_age_data['Height'], bins=30, color='#90EE90', alpha=0.7, edgecolor='black')
+            plt.title('Distribution of Athletes\' Height', fontsize=14, fontweight='bold', pad=15)
+            plt.xlabel('Height (cm)', fontsize=12, fontweight='bold')
+            plt.ylabel('Number of Athletes', fontsize=12, fontweight='bold')
+            plt.grid(True, alpha=0.3, linestyle='--')
+            # Add mean line
+            height_mean = valid_age_data['Height'].mean()
+            plt.axvline(height_mean, color='#FF6B6B', linestyle='dashed', linewidth=2)
+            plt.text(height_mean*1.02, plt.ylim()[1]*0.9, 
+                    f'Mean: {height_mean:.1f} cm', 
+                    color='#FF6B6B', 
+                    fontweight='bold')
+            plt.tight_layout()
+            st.pyplot(fig_height)
+
+        with hist_col2:
+            # Weight histogram with enhanced styling and limited range
+            fig_weight = plt.figure(figsize=(10, 6))
+            # Filter weights up to 150 kg
+            filtered_weights = valid_age_data[valid_age_data['Weight'] <= 150]['Weight']
+            plt.hist(filtered_weights, bins=30, color='#2E8B57', alpha=0.7, edgecolor='black')
+            plt.title('Distribution of Athletes\' Weight', fontsize=14, fontweight='bold', pad=15)
+            plt.xlabel('Weight (kg)', fontsize=12, fontweight='bold')
+            plt.ylabel('Number of Athletes', fontsize=12, fontweight='bold')
+            plt.grid(True, alpha=0.3, linestyle='--')
+            # Set x-axis limit explicitly
+            plt.xlim(0, 150)
+            # Add mean line (using filtered data mean)
+            weight_mean = filtered_weights.mean()
+            plt.axvline(weight_mean, color='#FF6B6B', linestyle='dashed', linewidth=2)
+            plt.text(weight_mean*1.02, plt.ylim()[1]*0.9, 
+                    f'Mean: {weight_mean:.1f} kg', 
+                    color='#FF6B6B', 
+                    fontweight='bold')
+            plt.tight_layout()
+            st.pyplot(fig_weight)
+
+        # Physical attributes metrics with explanations
+        st.markdown("""
+            <p style='font-size: 18px; color: #1f1f1f; line-height: 1.6; margin-top: 20px;'>
+                Key statistics about athletes' physical characteristics:
+            </p>
+        """, unsafe_allow_html=True)
+
+        phys_col1, phys_col2, phys_col3 = st.columns(3)
+        with phys_col1:
+            st.metric(
+                "Average Height",
+                f"{valid_age_data['Height'].mean():.1f} cm",
+                delta=f"±{valid_age_data['Height'].std():.1f} cm"
+            )
+        with phys_col2:
+            st.metric(
+                "Average Weight",
+                f"{valid_age_data['Weight'].mean():.1f} kg",
+                delta=f"±{valid_age_data['Weight'].std():.1f} kg"
+            )
+        with phys_col3:
+            bmi = valid_age_data['Weight'] / ((valid_age_data['Height']/100) ** 2)
+            st.metric(
+                "Average BMI",
+                f"{bmi.mean():.1f}",
+                delta=f"±{bmi.std():.1f}"
+            )
+            
+        # Close the styled container div
+        st.markdown("""</div>""", unsafe_allow_html=True)
+
+        # Introduction for age analysis
         st.markdown("""
         <div style='background-color: #f0f2f6; padding: 20px; border-radius: 10px; margin: 20px 0;'>
             <h2 style='color: #1f1f1f; margin-bottom: 15px;'>Understanding the Analysis 📊</h2>
@@ -879,7 +966,6 @@ elif selected_section == 'Age distribution by sport':
             display: flex !important;
             justify-content: center !important;
         }
-        /* Target the actual text elements */
         div.stRadio > div[role='radiogroup'] label p {
             color: black !important;
             font-weight: 500 !important;
@@ -903,7 +989,7 @@ elif selected_section == 'Age distribution by sport':
         """, unsafe_allow_html=True)
 
         # Get all unique sports and sort by average age
-        sports_avg_age = athlete_data.groupby('Sport')['Age'].mean().sort_values()
+        sports_avg_age = valid_age_data.groupby('Sport')['Age'].mean().sort_values()
         all_sports = sports_avg_age.index.tolist()
 
         # Define default sports
@@ -922,10 +1008,8 @@ elif selected_section == 'Age distribution by sport':
 
         if len(selected_sports) > 0:
             # Data processing
-            filtered_data = athlete_data[athlete_data['Sport'].isin(selected_sports)].copy()
-            mean_age = filtered_data['Age'].replace(-1, np.nan).mean()
-            filtered_data['Age'] = filtered_data['Age'].replace(-1, mean_age)
-
+            filtered_data = valid_age_data[valid_age_data['Sport'].isin(selected_sports)].copy()
+            
             if medal_selection != "All":
                 filtered_data = filtered_data[filtered_data['Medal'] == medal_selection]
 
@@ -982,11 +1066,9 @@ elif selected_section == 'Age distribution by sport':
             # Enhanced plot styling
             ax.set_title(f"Age Distribution in Olympic Sports ({medal_selection} Medals)", 
                         fontsize=16, pad=20, fontweight='bold')
-            ax.set_xlabel("Sport", fontsize=18, fontweight='bold')
-            ax.set_ylabel("Age", fontsize=18, fontweight='bold')
-            plt.xticks(rotation=45, ha='right' , fontsize=14, fontweight='bold')
-            ax.spines['top'].set_visible(False)
-            ax.spines['right'].set_visible(False)
+            ax.set_xlabel("Sport", fontsize=14, fontweight='bold')
+            ax.set_ylabel("Age", fontsize=14, fontweight='bold')
+            plt.xticks(rotation=45, ha='right')
             ax.grid(True, linestyle='--', alpha=0.3)
             
             if marker_color is None:
@@ -998,7 +1080,7 @@ elif selected_section == 'Age distribution by sport':
             # Key insights section header
             st.markdown("""
                 <h2 style='color: black; margin: 30px 0 15px 0;'>Key Insights 🔍</h2>
-                <p style='font-size: 18px; color: black; line-height: 1.6; margin-bottom: 15px;'>
+                <p style='font-size: 18px; color: white; line-height: 1.6; margin-bottom: 15px;'>
                     Statistical summary of the selected sports and medals:
                 </p>
             """, unsafe_allow_html=True)
