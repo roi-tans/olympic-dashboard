@@ -6,6 +6,7 @@ from pathlib import Path
 import zipfile
 import os
 import numpy as np
+import plotly.express as px
 
 # At the top of your file, replace the existing st.set_page_config with:
 st.set_page_config(
@@ -107,6 +108,51 @@ if selected_section == 'Introduction':
         """, unsafe_allow_html=True)
         
         st.dataframe(data.head(), height=300)
+
+      
+        st.title("Olympic Medals by Country")
+
+        medals_data = data.dropna(subset=['Medal', 'NOC'])
+
+        medals_count = medals_data.groupby('NOC')['Medal'].count().reset_index()
+        medals_count.columns = ['Country', 'Total Medals']
+
+        medals_by_type = medals_data.groupby(['NOC', 'Medal']).size().unstack(fill_value=0).reset_index()
+        medals_by_type.columns = ['Country', 'Bronze', 'Gold', 'Silver']
+
+        merged_data = pd.merge(medals_count, medals_by_type, on='Country')
+
+        @st.cache_data
+        def load_country_codes():
+            country_codes_url = 'https://raw.githubusercontent.com/plotly/datasets/master/2014_world_gdp_with_codes.csv'
+            country_codes = pd.read_csv(country_codes_url)
+            return country_codes
+
+        country_codes = load_country_codes()
+
+        merged_data = pd.merge(merged_data, country_codes, left_on='Country', right_on='CODE', how='inner')
+
+        st.write("### Interactive 3D Globe of Olympic Medals")
+        fig = px.choropleth(
+            merged_data,
+            locations="CODE",
+            color="Total Medals",
+            hover_name="COUNTRY",
+            hover_data={"Gold": True, "Silver": True, "Bronze": True, "Total Medals": True},
+            color_continuous_scale=px.colors.sequential.Plasma,
+            title="Olympic Medals by Country",
+            projection="orthographic"  # הופך את המפה לכדור הארץ
+        )
+        fig.update_geos(
+            showcountries=True, countrycolor="Black",
+            showcoastlines=True, coastlinecolor="Gray",
+            projection_rotation=dict(lon=0, lat=0),
+        )
+        fig.update_layout(geo=dict(showland=True, landcolor="white"))
+        fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+        st.plotly_chart(fig)
+
+        
 
         # Research Questions section
         st.markdown("""
