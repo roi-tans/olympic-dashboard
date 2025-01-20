@@ -5,3 +5,4 @@ zipfile
 pathlib
 matplotlib
 seaborn
+plotly.express 
