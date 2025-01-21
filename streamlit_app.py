@@ -109,11 +109,19 @@ if selected_section == 'Introduction':
         
         st.dataframe(data.head(), height=300)
 
-      
-        st.title("Olympic Medals by Country")
+        # Medal Distribution Globe Section
+        st.markdown("""
+        <div style='background-color: #f0f2f6; padding: 20px; border-radius: 10px; margin: 20px 0;'>
+            <h2 style='color: #1f1f1f; margin-bottom: 15px;'>🌍 Global Medal Distribution</h2>
+            <p style='font-size: 18px; color: #1f1f1f; line-height: 1.6;'>
+                Explore the distribution of Olympic medals across different countries. Darker red indicates higher medal counts,
+                while white represents countries with fewer or no medals.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
 
+        # Process medal data
         medals_data = data.dropna(subset=['Medal', 'NOC'])
-
         medals_count = medals_data.groupby('NOC')['Medal'].count().reset_index()
         medals_count.columns = ['Country', 'Total Medals']
 
@@ -122,6 +130,7 @@ if selected_section == 'Introduction':
 
         merged_data = pd.merge(medals_count, medals_by_type, on='Country')
 
+        # Load country codes
         @st.cache_data
         def load_country_codes():
             country_codes_url = 'https://raw.githubusercontent.com/plotly/datasets/master/2014_world_gdp_with_codes.csv'
@@ -129,30 +138,51 @@ if selected_section == 'Introduction':
             return country_codes
 
         country_codes = load_country_codes()
-
         merged_data = pd.merge(merged_data, country_codes, left_on='Country', right_on='CODE', how='inner')
 
-        st.write("### Interactive 3D Globe of Olympic Medals")
+        # Create interactive globe
         fig = px.choropleth(
             merged_data,
             locations="CODE",
             color="Total Medals",
             hover_name="COUNTRY",
-            hover_data={"Gold": True, "Silver": True, "Bronze": True, "Total Medals": True},
-            color_continuous_scale=px.colors.sequential.Plasma,
-            title="Olympic Medals by Country",
-            projection="orthographic"  # הופך את המפה לכדור הארץ
+            hover_data={
+                "Gold": True, 
+                "Silver": True, 
+                "Bronze": True, 
+                "Total Medals": True
+            },
+            color_continuous_scale=[[0, 'white'], [1, '#8B0000']],  # White to dark red scale
+            projection="orthographic"
         )
-        fig.update_geos(
-            showcountries=True, countrycolor="Black",
-            showcoastlines=True, coastlinecolor="Gray",
-            projection_rotation=dict(lon=0, lat=0),
-        )
-        fig.update_layout(geo=dict(showland=True, landcolor="white"))
-        fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
-        st.plotly_chart(fig)
 
-        
+        # Update globe styling
+        fig.update_geos(
+            showcountries=True, 
+            countrycolor="Black",
+            showcoastlines=True, 
+            coastlinecolor="Gray",
+            projection_rotation=dict(lon=0, lat=0),
+            showocean=True,
+            oceancolor="lightblue"
+        )
+
+        # Update layout
+        fig.update_layout(
+            geo=dict(showland=True, landcolor="white"),
+            margin={"r":0,"t":0,"l":0,"b":0},
+            coloraxis_colorbar=dict(
+                title="Total Medals",
+                tickformat="d",
+                len=0.75,
+                thickness=15,
+                title_font=dict(size=14),
+                tickfont=dict(size=12)
+            )
+        )
+
+        # Display the globe
+        st.plotly_chart(fig, use_container_width=True)
 
         # Research Questions section
         st.markdown("""
@@ -182,7 +212,7 @@ if selected_section == 'Introduction':
     except Exception as e:
         st.error(f"Error loading or processing data: {str(e)}")
         st.write("Please check if the data file is in the correct location and format.")
-
+        
 elif selected_section == 'Difference in physique between countries':
     @st.cache_data
     def get_athletes_data():
