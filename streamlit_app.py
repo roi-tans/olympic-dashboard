@@ -355,19 +355,21 @@ elif selected_section == 'Difference in physique between countries':
     width = 0.35
 
     # Create bars
-    height_bars = ax.bar(x - width/2, 
-                        sorted_athletes_df[height_col], 
-                        width, 
-                        label='Height',
-                        color='#4A90E2',  # Vibrant blue color
-                        alpha=0.8)
+    height_bars = ax.bar(
+        x - width/2, 
+        sorted_athletes_df[height_col], 
+        width, 
+        label='Height',
+        color='#4A90E2',  # Vibrant blue color
+        alpha=0.8)
 
-    weight_bars = ax.bar(x + width/2, 
-                        sorted_athletes_df[weight_col], 
-                        width, 
-                        label='Weight',
-                        color='#73BDF2',  # Vibrant gold color
-                        alpha=0.8)
+    weight_bars = ax.bar(
+        x + width/2, 
+        sorted_athletes_df[weight_col], 
+        width, 
+        label='Weight',
+        color='#73BDF2',  # Vibrant gold color
+        alpha=0.8)
 
     # Customize the plot
     ax.set_title(f'{metric_type} Height and Weight of Athletes by Country (Sorted)', fontsize=16, color='#333333')
@@ -632,21 +634,6 @@ elif selected_section == 'Height and Weight Analysis':
     
     plt.tight_layout()
     st.pyplot(fig)
-    
-    # Enhanced insights section
-    st.markdown("""
-    <div style='background-color: #f0f2f6; padding: 20px; border-radius: 10px; margin: 20px 0;'>
-        <h2 style='color: #1f1f1f; margin-bottom: 15px;'>Key Insights 🔍</h2>
-        <ul style='font-size: 18px; color: #1f1f1f; line-height: 1.6;'>
-            <li><strong>Distribution Pattern:</strong> The scatter plot reveals how physical attributes are distributed among medal winners, 
-            showing any clusters or patterns that might indicate optimal characteristics for success.</li>
-            <li><strong>Average Trends:</strong> The bar plot highlights any significant differences in average height and weight 
-            across medal categories, helping identify if certain physical attributes correlate with higher achievement.</li>
-            <li><strong>Sport-Specific Patterns:</strong> By comparing different sports, we can see how the importance of 
-            physical characteristics varies across disciplines.</li>
-        </ul>
-    </div>
-    """, unsafe_allow_html=True)
   
 elif selected_section == 'Budget influence on sports':
     # Define color scheme
@@ -909,64 +896,37 @@ elif selected_section == 'Age distribution by sport':
 
         # Physical Attributes Distribution Section with styled container
         st.markdown("""
-        <div style='background-color: #f0f2f6; padding: 20px; border-radius: 10px; margin: 20px 0;'>
-            <h2 style='color: #1f1f1f; margin-bottom: 15px;'>Athletes' Physical Attributes Distribution 📊</h2>
-            <p style='font-size: 18px; color: #1f1f1f; line-height: 1.6; margin-bottom: 20px;'>
-                Explore the distribution of athletes' height and weight across Olympic sports. The histograms show 
-                the frequency of different physical measurements, with red lines indicating the mean values.
-            </p>
+            <div style='background-color: #f0f2f6; padding: 20px; border-radius: 10px; margin: 20px 0;'>
+                <h2 style='color: #1f1f1f; margin-bottom: 15px;'>Athletes' Age Distribution 📊</h2>
+                <p style='font-size: 18px; color: #1f1f1f; line-height: 1.6; margin-bottom: 20px;'>
+                    This line plot illustrates the distribution of ages among athletes participating in the Olympics. 
+                    Each point represents the number of athletes at a specific age, allowing us to visualize trends and 
+                    patterns in age demographics across various sports. 
+                </p>
+            </div>
         """, unsafe_allow_html=True)
 
         # Create two columns for the histograms
         
         # Age distribution line graph with enhanced styling
-        fig_age = plt.figure(figsize=(10, 6))
+        # Age distribution line graph with enhanced styling
+        fig_age = plt.figure(figsize=(10, 6), facecolor='#f9f9f9')  # Light background
         age_counts = valid_age_data['Age'].value_counts().sort_index()
-        plt.plot(age_counts.index, age_counts.values, marker='o', color='#1E90FF', alpha=0.7, linewidth=2)
-        plt.title('Distribution of Athletes\' Age', fontsize=14, fontweight='bold', pad=15)
-        plt.xlabel('Age (years)', fontsize=12, fontweight='bold')
-        plt.ylabel('Number of Athletes', fontsize=12, fontweight='bold')
-        plt.grid(True, alpha=0.3, linestyle='--')
+        plt.plot(age_counts.index, age_counts.values, marker='o', color='#007BFF', alpha=0.9, linewidth=2, markersize=8, label='Number of Athletes')  # Rich teal color
+        plt.title('Distribution of Athletes\' Age', fontsize=16, fontweight='bold', pad=20)
+        plt.xlabel('Age (years)', fontsize=14, fontweight='bold')
+        plt.ylabel('Number of Athletes', fontsize=14, fontweight='bold')
+        plt.grid(True, alpha=0.5, linestyle='--')  # Lighter grid lines
         # Add mean line
         age_mean = valid_age_data['Age'].mean()
-        plt.axvline(age_mean, color='#FF6B6B', linestyle='dashed', linewidth=2)
+        plt.axvline(age_mean, color='#FFC107', linestyle='dashed', linewidth=2, label='Mean Age')  # Vibrant yellow
         plt.text(age_mean*1.02, plt.ylim()[1]*0.9, 
                 f'Mean: {age_mean:.1f} years', 
-                color='#FF6B6B', 
+                color='#FFC107', 
                 fontweight='bold')
+        plt.legend(fontsize=12)
         plt.tight_layout()
         st.pyplot(fig_age)
-
-        # Physical attributes metrics with explanations
-        st.markdown("""
-            <p style='font-size: 18px; color: #1f1f1f; line-height: 1.6; margin-top: 20px;'>
-                Key statistics about athletes' physical characteristics:
-            </p>
-        """, unsafe_allow_html=True)
-
-        phys_col1, phys_col2, phys_col3 = st.columns(3)
-        with phys_col1:
-            st.metric(
-                "Average Height",
-                f"{valid_age_data['Height'].mean():.1f} cm",
-                delta=f"±{valid_age_data['Height'].std():.1f} cm"
-            )
-        with phys_col2:
-            st.metric(
-                "Average Weight",
-                f"{valid_age_data['Weight'].mean():.1f} kg",
-                delta=f"±{valid_age_data['Weight'].std():.1f} kg"
-            )
-        with phys_col3:
-            bmi = valid_age_data['Weight'] / ((valid_age_data['Height']/100) ** 2)
-            st.metric(
-                "Average BMI",
-                f"{bmi.mean():.1f}",
-                delta=f"±{bmi.std():.1f}"
-            )
-            
-        # Close the styled container div
-        st.markdown("""</div>""", unsafe_allow_html=True)
 
         # Introduction for age analysis
         st.markdown("""
@@ -1093,12 +1053,12 @@ elif selected_section == 'Age distribution by sport':
             # Add median markers
             for sport, median in sport_medians.items():
                 x_coord = selected_sports.index(sport)
-                ax.scatter(x_coord, median, color='black', s=100, zorder=5)
+                ax.scatter(x_coord, median, color='black', s=150, zorder=5)  # Bright red color and increased size
                 ax.text(
                     x_coord, median + 1,
                     f'{median:.1f}',
                     color='black',
-                    fontsize=12,
+                    fontsize=24,
                     fontweight='bold',
                     ha='center'
                 )
