@@ -248,7 +248,7 @@ elif selected_section == 'Difference in physique between countries':
     with hist_col1:
                 # Height histogram with enhanced styling    
                 fig_height = plt.figure(figsize=(10, 6))
-                plt.hist(valid_age_data['Height'], bins=30, color='#90EE90', alpha=0.7, edgecolor='black')
+                plt.hist(valid_age_data['Height'], bins=30, color='#0072B2', alpha=0.7, edgecolor='black')
                 plt.title('Distribution of Athletes\' Height', fontsize=14, fontweight='bold', pad=15)
                 plt.xlabel('Height (cm)', fontsize=12, fontweight='bold')
                 plt.ylabel('Number of Athletes', fontsize=12, fontweight='bold')
@@ -267,7 +267,7 @@ elif selected_section == 'Difference in physique between countries':
         fig_weight = plt.figure(figsize=(10, 6))
         # Filter weights up to 150 kg
         filtered_weights = valid_age_data[valid_age_data['Weight'] <= 150]['Weight']
-        plt.hist(filtered_weights, bins=30, color='#2E8B57', alpha=0.7, edgecolor='black')
+        plt.hist(filtered_weights, bins=30, color='#0072B2', alpha=0.7, edgecolor='black')
         plt.title('Distribution of Athletes\' Weight', fontsize=14, fontweight='bold', pad=15)
         plt.xlabel('Weight (kg)', fontsize=12, fontweight='bold')
         plt.ylabel('Number of Athletes', fontsize=12, fontweight='bold')
