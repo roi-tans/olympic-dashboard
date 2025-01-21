@@ -653,7 +653,7 @@ elif selected_section == 'Budget influence on sports':
     colors = {
         'primary': '#4361EE',    # Vibrant Blue
         'accent': '#4CC9F0',     # Light Blue
-        'accent2': '#2E8B57',    # Sea Green - representing efficiency/performance       
+        'accent2': '#4361EE',    # Changed to dark blue for gradient
         'text': '#2C3E50',       # Dark Gray
         'grid': '#E9ECEF',       # Light Gray
         'background': '#FFFFFF'   # White
@@ -694,6 +694,36 @@ elif selected_section == 'Budget influence on sports':
                 "Budget-Medals Correlation", 
                 f"{correlation:.2f}"
             )
+            
+        # Calculate Medals per Billion
+        budget_df['Medals per Billion'] = (budget_df['Total Medals'] / budget_df['Budget_Clean']) * 1000
+
+        styled_df = (budget_df[['Country', 'Budget_Clean', 'Total Medals', 'Medals per Billion']]
+            .sort_values('Medals per Billion', ascending=False)
+            .style
+            .format({
+                'Budget_Clean': '${:,.2f}M',
+                'Medals per Billion': '{:.1f}',
+                'Total Medals': '{:.0f}'
+            })
+            .background_gradient(cmap='RdYlBu', subset=['Medals per Billion'])
+            .set_properties(**{
+                'text-align': 'right',
+                'font-size': '14px',
+                'padding': '10px'
+            })
+            .set_table_styles([
+                {'selector': 'th', 'props': [
+                    ('background-color', colors['primary']),
+                    ('color', 'white'),
+                    ('font-weight', 'bold'),
+                    ('padding', '12px'),
+                    ('font-size', '16px')
+                ]},
+                {'selector': 'td', 'props': [('padding', '10px')]}
+            ])
+        )
+        st.dataframe(styled_df, height=400)
 
         # Analysis explanation
         st.markdown("""
@@ -784,10 +814,13 @@ elif selected_section == 'Budget influence on sports':
         fig2, ax2 = plt.subplots(figsize=(12, 8))
         efficiency_data = budget_df.nlargest(10, 'Medals per Billion')
         
+        # Create color gradient from dark blue to light blue
+        colors_gradient = plt.cm.Blues(np.linspace(0.8, 0.3, len(efficiency_data)))
+        
         bars = ax2.bar(
             efficiency_data['Country'], 
             efficiency_data['Medals per Billion'],
-            color=colors['accent2'],
+            color=colors_gradient,
             alpha=0.8
         )
         
@@ -835,37 +868,10 @@ elif selected_section == 'Budget influence on sports':
         </div>
         """, unsafe_allow_html=True)
         
-        styled_df = (budget_df[['Country', 'Budget_Clean', 'Total Medals', 'Medals per Billion']]
-            .sort_values('Medals per Billion', ascending=False)
-            .style
-            .format({
-                'Budget_Clean': '${:,.2f}M',
-                'Medals per Billion': '{:.1f}',
-                'Total Medals': '{:.0f}'
-            })
-            .background_gradient(cmap='RdYlBu', subset=['Medals per Billion'])
-            .set_properties(**{
-                'text-align': 'right',
-                'font-size': '14px',
-                'padding': '10px'
-            })
-            .set_table_styles([
-                {'selector': 'th', 'props': [
-                    ('background-color', colors['primary']),
-                    ('color', 'white'),
-                    ('font-weight', 'bold'),
-                    ('padding', '12px'),
-                    ('font-size', '16px')
-                ]},
-                {'selector': 'td', 'props': [('padding', '10px')]}
-            ])
-        )
-        st.dataframe(styled_df, height=400)
-
     except Exception as e:
         st.error(f"Error loading or processing data: {str(e)}")
         st.write("Please check if the data file is in the correct location and format.")
-
+        
 elif selected_section == 'Age distribution by sport':
     np.random.seed(111)
 
