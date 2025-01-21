@@ -202,7 +202,7 @@ if selected_section == 'Introduction':
                     Is there a correlation between national sports budgets and Olympic medal counts?
                 </p>
                 <p style='margin-bottom: 15px;'>
-                    <strong>4. Age Distribution 📊</strong><br>
+                    <strong>4. Age distribution by sport 📊</strong><br>
                     How does age distribution vary across different Olympic sports, and what role does it play in medal achievements?
                 </p>
             </div>
@@ -231,6 +231,91 @@ elif selected_section == 'Difference in physique between countries':
      a positive relationship between mean height and weight across countries. The red line represents the trend, while the shaded area indicates variability, showing
       that taller athletes tend to weigh more on average.""")   
     countries = athletes_df['region'].unique()
+    
+
+    print(athletes_df.columns)  # Debugging line to check available columns
+    athlete_data = pd.read_csv("data/preprocessed_athlete_events.csv")
+    valid_age_data = athlete_data[
+        (athlete_data['Age'] != -1) & 
+        (athlete_data['Height'] > 0) &  # Filter out zero heights
+        (athlete_data['Weight'] > 0)     # Filter out zero weights
+    ]
+
+
+    hist_col1, hist_col2 = st.columns(2)
+
+    
+    with hist_col1:
+                # Height histogram with enhanced styling    
+                fig_height = plt.figure(figsize=(10, 6))
+                plt.hist(valid_age_data['Height'], bins=30, color='#90EE90', alpha=0.7, edgecolor='black')
+                plt.title('Distribution of Athletes\' Height', fontsize=14, fontweight='bold', pad=15)
+                plt.xlabel('Height (cm)', fontsize=12, fontweight='bold')
+                plt.ylabel('Number of Athletes', fontsize=12, fontweight='bold')
+                plt.grid(True, alpha=0.3, linestyle='--')
+                # Add mean line
+                height_mean = valid_age_data['Height'].mean()
+                plt.axvline(height_mean, color='#FF6B6B', linestyle='dashed', linewidth=2)
+                plt.text(height_mean*1.02, plt.ylim()[1]*0.9, 
+                        f'Mean: {height_mean:.1f} cm', 
+                        color='#FF6B6B', 
+                        fontweight='bold')
+                plt.tight_layout()
+                st.pyplot(fig_height)
+    with hist_col2:
+        # Weight histogram with enhanced styling and limited range
+        fig_weight = plt.figure(figsize=(10, 6))
+        # Filter weights up to 150 kg
+        filtered_weights = valid_age_data[valid_age_data['Weight'] <= 150]['Weight']
+        plt.hist(filtered_weights, bins=30, color='#2E8B57', alpha=0.7, edgecolor='black')
+        plt.title('Distribution of Athletes\' Weight', fontsize=14, fontweight='bold', pad=15)
+        plt.xlabel('Weight (kg)', fontsize=12, fontweight='bold')
+        plt.ylabel('Number of Athletes', fontsize=12, fontweight='bold')
+        plt.grid(True, alpha=0.3, linestyle='--')
+        # Set x-axis limit explicitly
+        plt.xlim(0, 150)
+        # Add mean line (using filtered data mean)
+        weight_mean = filtered_weights.mean()
+        plt.axvline(weight_mean, color='#FF6B6B', linestyle='dashed', linewidth=2)
+        plt.text(weight_mean*1.02, plt.ylim()[1]*0.9, 
+                f'Mean: {weight_mean:.1f} kg', 
+                color='#FF6B6B', 
+                fontweight='bold')
+        plt.tight_layout()
+        st.pyplot(fig_weight)
+
+    # Physical attributes metrics with explanations
+    st.markdown("""
+        <p style='font-size: 18px; color: #1f1f1f; line-height: 1.6; margin-top: 20px;'>
+            Key statistics about athletes' physical characteristics:
+        </p>
+    """, unsafe_allow_html=True)
+
+    phys_col1, phys_col2, phys_col3 = st.columns(3)
+    with phys_col1:
+        st.metric(
+            "Average Height",
+            f"{valid_age_data['Height'].mean():.1f} cm",
+            delta=f"±{valid_age_data['Height'].std():.1f} cm"
+        )
+    with phys_col2:
+        st.metric(
+            "Average Weight",
+            f"{valid_age_data['Weight'].mean():.1f} kg",
+            delta=f"±{valid_age_data['Weight'].std():.1f} kg"
+        )
+    with phys_col3:
+        bmi = valid_age_data['Weight'] / ((valid_age_data['Height']/100) ** 2)
+        st.metric(
+            "Average BMI",
+            f"{bmi.mean():.1f}",
+            delta=f"±{bmi.std():.1f}"
+        )
+        
+    # Close the styled container div
+    st.markdown("""</div>""", unsafe_allow_html=True)
+
+
 
     selected_countries = st.multiselect(
         'Which countries would you like to view?',
@@ -364,143 +449,39 @@ elif selected_section == 'Difference in physique between countries':
     filtered_grouped_df = events_filtered_df[events_filtered_df['region'].isin(chosen_nocs)]
 
     # Create tabs for different visualizations
-    tab1, tab2 = st.tabs(["Height vs Weight Analysis", "Country Analysis"])
 
-    with tab1:
-        st.header('Analysis')
+    st.header('Analysis')
 
-        # Simple scatter plot with regression line
-        fig, ax = plt.subplots(figsize=(10, 6))
-        
-        # Using a custom color for scatterplot dots
-        sns.scatterplot(
-            data=filtered_grouped_df,
-            x='mean_height',
-            y='mean_weight',
-            s=100,
-            color='#2a9d8f',  # Custom teal-green color
-            alpha=0.8
-        )
-        
-        # Regression line in a complementary color
-        sns.regplot(
-            data=filtered_grouped_df,
-            x='mean_height',
-            y='mean_weight',
-            scatter=False,
-            color='#e76f51',  # Warm coral color for contrast
-            line_kws={"lw": 2, "alpha": 0.9}
-        )
-        
-        # Styling adjustments
-        ax.set_title('Height vs. Weight Analysis', fontsize=16, color='#333333')
-        ax.set_xlabel('Mean Height (cm)', fontsize=12, color='#333333')
-        ax.set_ylabel('Mean Weight (kg)', fontsize=12, color='#333333')
-        ax.grid(True, linestyle='--', alpha=0.6)
-        
-        st.pyplot(fig)
-
-    with tab2:
-        st.header('Country Comparison', divider='gray')
-        
-        # Calculate average BMI for each country
-        filtered_grouped_df['BMI'] = filtered_grouped_df['mean_weight'] / (filtered_grouped_df['mean_height'] / 100) ** 2
-        
-        country_stats = filtered_grouped_df.groupby('region').agg({
-            'mean_height': 'mean',
-            'mean_weight': 'mean',
-            'BMI': 'mean'
-        }).round(2)
-        
-        # Create bar chart comparing countries with vibrant colors
-        fig_countries, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18, 6), dpi=100)
-        
-        # Height comparison
-        sns.barplot(
-            data=filtered_grouped_df,
-            x='region',
-            y='mean_height',
-            ci=None,
-            palette='crest',  # Vibrant green-blue palette
-            ax=ax1
-        )
-        ax1.set_title('Average Height by Country', fontsize=14, color='#333333')
-        ax1.set_ylabel('Height (cm)', fontsize=12, color='#333333')
-        ax1.tick_params(axis='x', rotation=45)
-        ax1.grid(True, linestyle='--', alpha=0.6)
-        
-        # Weight comparison
-        sns.barplot(
-            data=filtered_grouped_df,
-            x='region',
-            y='mean_weight',
-            ci=None,
-            palette='flare',  # Vibrant pink-red palette
-            ax=ax2
-        )
-        ax2.set_title('Average Weight by Country', fontsize=14, color='#333333')
-        ax2.set_ylabel('Weight (kg)', fontsize=12, color='#333333')
-        ax2.tick_params(axis='x', rotation=45)
-        ax2.grid(True, linestyle='--', alpha=0.6)
-        
-        # BMI comparison
-        sns.barplot(
-            data=filtered_grouped_df,
-            x='region',
-            y='BMI',
-            ci=None,
-            palette='mako',  # Vibrant teal-blue palette
-            ax=ax3
-        )
-        ax3.set_title('Average BMI by Country', fontsize=14, color='#333333')
-        ax3.set_ylabel('BMI', fontsize=12, color='#333333')
-        ax3.tick_params(axis='x', rotation=45)
-        ax3.grid(True, linestyle='--', alpha=0.6)
-        
-        # Layout adjustments
-        plt.tight_layout()
-        st.pyplot(fig_countries)
-        
-        # Display detailed statistics
-        st.subheader('Detailed Country Statistics')
-        st.dataframe(
-            country_stats.style.format({
-                'mean_height': '{:.1f} cm',
-                'mean_weight': '{:.1f} kg',
-                'BMI': '{:.1f}'
-            })
-        )
+    # Simple scatter plot with regression line
+    fig, ax = plt.subplots(figsize=(10, 6))
     
-    # Add title for this section
-
-
-    # Add key insights section
-    st.header('Key Insights', divider='gray')
-
-    # Calculate some interesting statistics
-    stats_cols = st.columns(3)
-
-    with stats_cols[0]:
-        st.metric(
-            label="Average Height",
-            value=f"{filtered_grouped_df['mean_height'].mean():.1f} cm",
-            delta=f"{filtered_grouped_df['mean_height'].std():.1f} cm std"
-        )
-
-    with stats_cols[1]:
-        st.metric(
-            label="Average Weight",
-            value=f"{filtered_grouped_df['mean_weight'].mean():.1f} kg",
-            delta=f"{filtered_grouped_df['mean_weight'].std():.1f} kg std"
-        )
-
-    with stats_cols[2]:
-        avg_bmi = filtered_grouped_df['BMI'].mean()
-        st.metric(
-            label="Average BMI",
-            value=f"{avg_bmi:.1f}",
-            delta=f"{filtered_grouped_df['BMI'].std():.1f} std"
-        )
+    # Using a custom color for scatterplot dots
+    sns.scatterplot(
+        data=filtered_grouped_df,
+        x='mean_height',
+        y='mean_weight',
+        s=100,
+        color='#2a9d8f',  # Custom teal-green color
+        alpha=0.8
+    )
+    
+    # Regression line in a complementary color
+    sns.regplot(
+        data=filtered_grouped_df,
+        x='mean_height',
+        y='mean_weight',
+        scatter=False,
+        color='#e76f51',  # Warm coral color for contrast
+        line_kws={"lw": 2, "alpha": 0.9}
+    )
+    
+    # Styling adjustments
+    ax.set_title('Height vs. Weight Analysis', fontsize=16, color='#333333')
+    ax.set_xlabel('Mean Height (cm)', fontsize=12, color='#333333')
+    ax.set_ylabel('Mean Weight (kg)', fontsize=12, color='#333333')
+    ax.grid(True, linestyle='--', alpha=0.6)
+    
+    st.pyplot(fig)
 
 
 #######################################
@@ -931,47 +912,24 @@ elif selected_section == 'Age distribution by sport':
         """, unsafe_allow_html=True)
 
         # Create two columns for the histograms
-        hist_col1, hist_col2 = st.columns(2)
-
-        with hist_col1:
-            # Height histogram with enhanced styling    
-            fig_height = plt.figure(figsize=(10, 6))
-            plt.hist(valid_age_data['Height'], bins=30, color='#90EE90', alpha=0.7, edgecolor='black')
-            plt.title('Distribution of Athletes\' Height', fontsize=14, fontweight='bold', pad=15)
-            plt.xlabel('Height (cm)', fontsize=12, fontweight='bold')
-            plt.ylabel('Number of Athletes', fontsize=12, fontweight='bold')
-            plt.grid(True, alpha=0.3, linestyle='--')
-            # Add mean line
-            height_mean = valid_age_data['Height'].mean()
-            plt.axvline(height_mean, color='#FF6B6B', linestyle='dashed', linewidth=2)
-            plt.text(height_mean*1.02, plt.ylim()[1]*0.9, 
-                    f'Mean: {height_mean:.1f} cm', 
-                    color='#FF6B6B', 
-                    fontweight='bold')
-            plt.tight_layout()
-            st.pyplot(fig_height)
-
-        with hist_col2:
-            # Weight histogram with enhanced styling and limited range
-            fig_weight = plt.figure(figsize=(10, 6))
-            # Filter weights up to 150 kg
-            filtered_weights = valid_age_data[valid_age_data['Weight'] <= 150]['Weight']
-            plt.hist(filtered_weights, bins=30, color='#2E8B57', alpha=0.7, edgecolor='black')
-            plt.title('Distribution of Athletes\' Weight', fontsize=14, fontweight='bold', pad=15)
-            plt.xlabel('Weight (kg)', fontsize=12, fontweight='bold')
-            plt.ylabel('Number of Athletes', fontsize=12, fontweight='bold')
-            plt.grid(True, alpha=0.3, linestyle='--')
-            # Set x-axis limit explicitly
-            plt.xlim(0, 150)
-            # Add mean line (using filtered data mean)
-            weight_mean = filtered_weights.mean()
-            plt.axvline(weight_mean, color='#FF6B6B', linestyle='dashed', linewidth=2)
-            plt.text(weight_mean*1.02, plt.ylim()[1]*0.9, 
-                    f'Mean: {weight_mean:.1f} kg', 
-                    color='#FF6B6B', 
-                    fontweight='bold')
-            plt.tight_layout()
-            st.pyplot(fig_weight)
+        
+        # Age distribution line graph with enhanced styling
+        fig_age = plt.figure(figsize=(10, 6))
+        age_counts = valid_age_data['Age'].value_counts().sort_index()
+        plt.plot(age_counts.index, age_counts.values, marker='o', color='#1E90FF', alpha=0.7, linewidth=2)
+        plt.title('Distribution of Athletes\' Age', fontsize=14, fontweight='bold', pad=15)
+        plt.xlabel('Age (years)', fontsize=12, fontweight='bold')
+        plt.ylabel('Number of Athletes', fontsize=12, fontweight='bold')
+        plt.grid(True, alpha=0.3, linestyle='--')
+        # Add mean line
+        age_mean = valid_age_data['Age'].mean()
+        plt.axvline(age_mean, color='#FF6B6B', linestyle='dashed', linewidth=2)
+        plt.text(age_mean*1.02, plt.ylim()[1]*0.9, 
+                f'Mean: {age_mean:.1f} years', 
+                color='#FF6B6B', 
+                fontweight='bold')
+        plt.tight_layout()
+        st.pyplot(fig_age)
 
         # Physical attributes metrics with explanations
         st.markdown("""
