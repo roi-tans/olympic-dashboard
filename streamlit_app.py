@@ -489,9 +489,15 @@ elif selected_section == 'Difference in physique between countries':
 #######################################
 
 elif selected_section == 'Height and Weight Analysis':
+    medal_colors = {
+    'Gold': '#FFD700',    # Bright gold
+    'Silver': '#C0C0C0',  # Bright silver
+    'Bronze': '#CD7F32'   # Warm bronze
+    }
+
     # Title and Introduction
     st.title("Is there a correlation between height or weight and winning medals, and if so, in which sports? 📏")
-    
+
     # Enhanced introduction with larger text and better formatting
     st.markdown("""
     <div style='background-color: #f0f2f6; padding: 20px; border-radius: 10px; margin: 20px 0;'>
@@ -506,7 +512,7 @@ elif selected_section == 'Height and Weight Analysis':
         </p>
     </div>
     """, unsafe_allow_html=True)
-    
+
     # Data Loading
     @st.cache_data
     def load_data():
@@ -521,39 +527,55 @@ elif selected_section == 'Height and Weight Analysis':
         # Read the file
         data = pd.read_csv(csv_file_path)
         return data
-    
+
     data1 = load_data()
-    
+
     # Data cleaning
     data = data1[
         (data1['Height'] != -1) &
         (data1['Weight'] != -1)
     ]
     data = data.dropna(subset=['Height', 'Weight', 'Medal', 'Year'])
-    
-    # Sport selection with larger font
-    sports_list = data['Sport'].unique().tolist()
-    st.markdown("### Select a Sport to Analyze 🎯:")
-    selected_sport = st.selectbox("", sports_list)  # Empty string to avoid double label
-    sport_data = data[data['Sport'] == selected_sport]
-    
+
+    # Filter the events to only include the top 20 with the largest differences
+    top_20_events = [
+        "Swimming Men's 400 metres Individual Medley",
+        "Diving Men's Synchronized Platform",
+        "Wrestling Men's Super-Heavyweight, Greco-Roman",
+        "Boxing Men's Super-Heavyweight",
+        "Athletics Women's Shot Put",
+        "Weightlifting Men's Super-Heavyweight",
+        "Shooting Men's Small-Bore Rifle, Three Positions, 50 metres",
+        "Cross Country Skiing Men's 30 kilometres",
+        "Tennis Men's Doubles",
+        "Diving Women's Synchronized Platform",
+        "Diving Women's Synchronized Springboard",
+        "Athletics Men's 800 metres",
+        "Wrestling Men's Super-Heavyweight, Freestyle",
+        "Biathlon Men's 20 kilometres",
+        "Equestrianism Mixed Three-Day Event, Individual",
+        "Boxing Men's Featherweight",
+        "Speed Skating Men's Team Pursuit (8 laps)",
+        "Bobsleigh Men's Four",
+        "Athletics Men's 20 kilometres Walk",
+        "Tennis Women's Doubles"
+    ]
+
+    # Sport selection with top 20 filtered
+    st.markdown("### Select an Event to Analyze 🎯:")
+    selected_event = st.selectbox("", top_20_events)  # Use only the top 20 events
+    event_data = data[data['Event'] == selected_event]
+
     # Scatter Plot
     st.markdown("## Scatter Plot: Height vs. Weight by Medal 📈")
     fig, ax = plt.subplots(figsize=(12, 8))
-    
-    # Define medal colors
-    medal_colors = {
-        'Gold': '#FFD700',    # Bright gold
-        'Silver': '#C0C0C0',  # Brighter silver
-        'Bronze': '#CD7F32'   # Warm bronze
-    }
-    
+
     # Create scatter plot
     for medal in ['Bronze', 'Silver', 'Gold']:  # Plot in this order to have gold on top
-        mask = sport_data['Medal'] == medal
+        mask = event_data['Medal'] == medal
         ax.scatter(
-            sport_data[mask]['Height'],
-            sport_data[mask]['Weight'],
+            event_data[mask]['Height'],
+            event_data[mask]['Weight'],
             c=medal_colors[medal],
             label=medal,
             alpha=0.7,
@@ -561,15 +583,15 @@ elif selected_section == 'Height and Weight Analysis':
             edgecolor='white',  # White edge for better contrast
             linewidth=0.5
         )
-    
+
     # Enhance scatter plot styling
     ax.set_xlabel('Height (cm)', fontsize=14, fontweight='bold')
     ax.set_ylabel('Weight (kg)', fontsize=14, fontweight='bold')
-    ax.set_title(f'{selected_sport}: Height vs. Weight by Medal', fontsize=16, pad=20)
+    ax.set_title(f'{selected_event}: Height vs. Weight by Medal', fontsize=16, pad=20)
     ax.grid(True, linestyle='--', alpha=0.3)
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
-    
+
     # Enhanced legend
     ax.legend(
         title='Medal Type',
@@ -578,62 +600,93 @@ elif selected_section == 'Height and Weight Analysis':
         bbox_to_anchor=(1.05, 1),
         loc='upper left'
     )
-    
+
     plt.tight_layout()
     st.pyplot(fig)
-    
-    # Bar Plot
-    st.markdown("## Bar Plot: Average Height and Weight by Medal 📊")
-    avg_data = sport_data.groupby('Medal')[['Height', 'Weight']].mean().reset_index()
-    
-    fig, ax = plt.subplots(figsize=(12, 8))
-    
-    # Define measurement colors
-    measurement_colors = {
-        'Height': '#FF6B6B',  # Warm coral for height
-        'Weight': '#4ECDC4'   # Fresh teal for weight
+
+    # Header for Attribute Selection
+    st.markdown("""
+        <h2 style='color: black; margin: 20px 0 15px 0;'>Select Attribute to Analyze 📏</h2>
+    """, unsafe_allow_html=True)
+
+    # Custom CSS for Styling Radio Buttons
+    st.markdown("""
+    <style>
+    div.stRadio > div[role='radiogroup'] > label {
+        font-size: 20px !important;
+        padding: 10px 25px !important;
+        margin: 4px 8px !important;
+        background-color: #f8f9fa !important;
+        border-radius: 8px !important;
+        transition: all 0.2s !important;
     }
-    
-    # Create bar plot
-    for i, measure in enumerate(['Height', 'Weight']):
-        data_for_measure = avg_data[['Medal', measure]].copy()
-        data_for_measure.columns = ['Medal', 'Value']
-        
-        bars = ax.bar(
-            [x + i*0.25 for x in range(len(avg_data))], 
-            data_for_measure['Value'],
-            0.25,
-            label=measure,
-            color=measurement_colors[measure],
-            alpha=0.8
+    div.stRadio > div[role='radiogroup'] > label:hover {
+        background-color: #e9ecef !important;
+    }
+    div.stRadio > div[role='radiogroup'] {
+        display: flex !important;
+        justify-content: center !important;
+    }
+    div.stRadio > div[role='radiogroup'] label p {
+        color: black !important;
+        font-weight: 500 !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    # Radio Button for Attribute Selection
+    attribute_selection = st.radio(
+        "",  # Empty label since we have the header above
+        options=["Height", "Weight"],
+        index=0,  # Default to "Height"
+        horizontal=True
+    )
+
+    # Group data by Medal and calculate averages
+    avg_data = event_data.groupby('Medal')[['Height', 'Weight']].mean().reset_index()
+
+    # Bar Plot for Selected Attribute
+    st.markdown(f"## Bar Plot: Average {attribute_selection} by Medal 📊")
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    # Plot based on selected attribute
+    bars = ax.bar(
+        avg_data['Medal'],
+        avg_data[attribute_selection],
+        color=[medal_colors[medal] for medal in avg_data['Medal']],  # Apply medal colors
+        alpha=0.8
+    )
+
+    # Add value labels
+    for bar in bars:
+        value = bar.get_height()
+        ax.text(
+            bar.get_x() + bar.get_width() / 2.,
+            value,
+            f'{value:.1f}',
+            ha='center',
+            va='bottom',
+            fontsize=12
         )
-        
-        # Add value labels on top of bars
-        for bar in bars:
-            height = bar.get_height()
-            ax.text(
-                bar.get_x() + bar.get_width()/2.,
-                height,
-                f'{height:.1f}',
-                ha='center',
-                va='bottom',
-                fontsize=12
-            )
-    
-    # Enhance bar plot styling
+
+    # Style the plot
     ax.set_xlabel('Medal Type', fontsize=14, fontweight='bold')
-    ax.set_ylabel('Value', fontsize=14, fontweight='bold')
-    ax.set_title(f'{selected_sport}: Average Height and Weight by Medal', 
-                 fontsize=16, pad=20)
-    ax.set_xticks([x + 0.25/2 for x in range(len(avg_data))])
-    ax.set_xticklabels(avg_data['Medal'], fontsize=12)
+    ax.set_ylabel(f'Average {attribute_selection} ({"cm" if attribute_selection == "Height" else "kg"})', fontsize=14, fontweight='bold')
+    ax.set_title(f'{selected_event}: Average {attribute_selection} by Medal', fontsize=16, pad=20)
+
+    # Set Y-axis range based on selected attribute
+    if attribute_selection == "Height":
+        ax.set_ylim(150, None)
+    else:
+        ax.set_ylim(50, None)
+
     ax.grid(True, axis='y', linestyle='--', alpha=0.3)
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
-    ax.legend(fontsize=12, title_fontsize=14)
-    
+
     plt.tight_layout()
     st.pyplot(fig)
+
   
 elif selected_section == 'Budget influence on sports':
     # Define color scheme
